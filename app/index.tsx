@@ -1,5 +1,6 @@
 import { Text, View } from "react-native";
 import App from "./App";
+import Cadastro from "./Cadastro";
 
 export default function Index() {
   return (
@@ -10,7 +11,8 @@ export default function Index() {
         alignItems: "center",
       }}
     >
-      <App></App>
+      {/* <App></App> */}
+      <Cadastro></Cadastro>
     </View>
   );
 }
