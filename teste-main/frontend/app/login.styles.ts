@@ -1,0 +1,115 @@
+import { StyleSheet } from "react-native";
+
+/** Visual do Hydra-login-cadastro (tela-login) */
+export const loginStyles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    backgroundColor: "#cccccc",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  logo: {
+    width: 220,
+    height: 80,
+    resizeMode: "contain",
+    marginBottom: 24,
+  },
+  card: {
+    backgroundColor: "#f6f6f6",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#b4b4b4",
+    paddingHorizontal: 20,
+    paddingTop: 16,
+    paddingBottom: 24,
+    width: "100%",
+    maxWidth: 420,
+    alignItems: "center",
+  },
+  title: {
+    fontSize: 48,
+    fontWeight: "700",
+    color: "#db0404",
+    marginBottom: 20,
+  },
+  fieldGroup: {
+    width: "100%",
+    marginBottom: 12,
+  },
+  label: {
+    fontSize: 16,
+    color: "#000",
+    textAlign: "left",
+    marginBottom: 6,
+    alignSelf: "flex-start",
+  },
+  input: {
+    width: "100%",
+    height: 40,
+    borderWidth: 1,
+    borderColor: "#484848",
+    borderRadius: 20,
+    backgroundColor: "#d9d9d9",
+    paddingHorizontal: 14,
+    fontSize: 16,
+  },
+  button: {
+    backgroundColor: "#d04044",
+    borderRadius: 5,
+    height: 40,
+    minWidth: 200,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 16,
+    paddingHorizontal: 24,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 18,
+    fontWeight: "600",
+    letterSpacing: 1,
+  },
+  footer: {
+    marginTop: 20,
+    fontSize: 16,
+    color: "#000",
+  },
+  footerLink: {
+    color: "#1100cc",
+    fontWeight: "600",
+  },
+  roleRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    marginTop: 8,
+    alignSelf: "flex-start",
+  },
+  roleOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: "#b4b4b4",
+    borderRadius: 8,
+    backgroundColor: "#fff",
+  },
+  roleOptionOn: {
+    borderColor: "#d04044",
+    backgroundColor: "#fff5f5",
+  },
+  roleText: {
+    fontSize: 14,
+    color: "#333",
+  },
+  roleTextOn: {
+    color: "#d04044",
+    fontWeight: "700",
+  },
+});
