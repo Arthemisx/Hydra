@@ -3,11 +3,11 @@ from flask import Flask, Response, jsonify, request
 from flask_cors import CORS
 from config import Config
 from models import db
-from auth import auth_bp
-from routes_session import session_bp
-from routes_reports import reports_bp
-from routes_daily import daily_bp
-from reports import (
+from autenticacao import auth_bp
+from rotas_sessao import session_bp
+from rotas_relatorios import reports_bp
+from rotas_diario import daily_bp
+from relatorios import (
     FORMATS,
     PERIODS,
     build_csv_bytes,

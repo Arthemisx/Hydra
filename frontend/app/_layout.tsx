@@ -1,11 +1,11 @@
 import { Stack } from "expo-router";
 
-import { FeedbackProvider } from "@/components/FeedbackProvider";
+import { ProvedorFeedback } from "@/componentes/ProvedorFeedback";
 
 export default function RootLayout() {
   return (
-    <FeedbackProvider>
+    <ProvedorFeedback>
       <Stack screenOptions={{ headerShown: false }} />
-    </FeedbackProvider>
+    </ProvedorFeedback>
   );
 }

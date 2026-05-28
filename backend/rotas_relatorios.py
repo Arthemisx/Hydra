@@ -1,6 +1,6 @@
 from flask import Blueprint, jsonify
 from models import Session, User
-from auth import jwt_required, role_required
+from autenticacao import jwt_required, role_required
 
 reports_bp = Blueprint("reports", __name__, url_prefix="/api")
 

@@ -11,10 +11,10 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 
-import { login } from "@/lib/auth";
-import { loginStyles as styles } from "./login.styles";
-import { useFeedback } from "@/components/FeedbackProvider";
-import { StatusBanner } from "@/components/StatusBanner";
+import { login } from "@/biblioteca/auth";
+import { loginStyles as styles } from "@/estilos/login.styles";
+import { useFeedback } from "@/componentes/ProvedorFeedback";
+import { BannerStatus } from "@/componentes/BannerStatus";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -76,7 +76,7 @@ export default function LoginScreen() {
             />
           </View>
 
-          {fieldError ? <StatusBanner message={fieldError} variant="error" /> : null}
+          {fieldError ? <BannerStatus message={fieldError} variant="error" /> : null}
 
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}

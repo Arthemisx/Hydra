@@ -14,7 +14,7 @@ type Props = {
   variant?: Variant;
 };
 
-export function StatusBanner({ message, variant = "info" }: Props) {
+export function BannerStatus({ message, variant = "info" }: Props) {
   const v = VARIANTS[variant];
   return (
     <View style={[styles.banner, { backgroundColor: v.bg, borderColor: v.border }]}>

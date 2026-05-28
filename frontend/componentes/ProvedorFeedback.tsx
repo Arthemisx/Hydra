@@ -63,7 +63,7 @@ function Toast({ item, onHide }: { item: ToastItem; onHide: (id: number) => void
   );
 }
 
-export function FeedbackProvider({ children }: { children: React.ReactNode }) {
+export function ProvedorFeedback({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const idRef = useRef(0);
 
@@ -107,7 +107,7 @@ export function FeedbackProvider({ children }: { children: React.ReactNode }) {
 export function useFeedback() {
   const ctx = useContext(FeedbackContext);
   if (!ctx) {
-    throw new Error("useFeedback deve ser usado dentro de FeedbackProvider");
+    throw new Error("useFeedback deve ser usado dentro de ProvedorFeedback");
   }
   return ctx;
 }

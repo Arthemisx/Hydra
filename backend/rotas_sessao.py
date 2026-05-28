@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, g
 from models import db, Session, FluidEvent
-from auth import jwt_required
-from calculations import calculate_session
+from autenticacao import jwt_required
+from calculos import calculate_session
 
 session_bp = Blueprint("sessions", __name__, url_prefix="/api/sessions")
 

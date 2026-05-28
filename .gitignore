@@ -1,7 +1,9 @@
 # Python
 backend/.venv/
-backend/__pycache__/
+__pycache__/
+*.pyc
 backend/*.db
+backend/instance/*.db
 backend/.env
 
 # Node / Expo

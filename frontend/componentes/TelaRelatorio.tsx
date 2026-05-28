@@ -6,11 +6,11 @@ import {
   LongitudinalReport,
   ReportFormat,
   ReportPeriod,
-} from "@/lib/reportApi";
-import { reportStyles } from "./report.styles";
-import { CoachAthleteSummary } from "./constants";
-import { useFeedback } from "@/components/FeedbackProvider";
-import { StatusBanner } from "@/components/StatusBanner";
+} from "@/biblioteca/reportApi";
+import { reportStyles } from "@/estilos/report.styles";
+import { CoachAthleteSummary } from "@/biblioteca/constants";
+import { useFeedback } from "@/componentes/ProvedorFeedback";
+import { BannerStatus } from "@/componentes/BannerStatus";
 
 const PERIODS: { key: ReportPeriod; label: string }[] = [
   { key: "daily", label: "Diario" },
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
   },
 });
 
-export function ReportScreen({ athleteName, apiBaseUrl, userRole, athletes, onSelectAthlete }: Props) {
+export function TelaRelatorio({ athleteName, apiBaseUrl, userRole, athletes, onSelectAthlete }: Props) {
   const isAthlete = userRole === "athlete";
   const { width } = useWindowDimensions();
   const isWide = width >= 640;
@@ -235,7 +235,7 @@ export function ReportScreen({ athleteName, apiBaseUrl, userRole, athletes, onSe
           </View>
 
           <View style={reportStyles.footer}>
-            {loading ? <StatusBanner message="Gerando relatorio, aguarde..." variant="loading" /> : null}
+            {loading ? <BannerStatus message="Gerando relatorio, aguarde..." variant="loading" /> : null}
 
             <Pressable
               onPress={handleGenerate}

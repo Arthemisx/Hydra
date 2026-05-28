@@ -16,7 +16,7 @@ if (-not (Test-Path (Join-Path $backendDir ".env"))) {
 & (Join-Path $backendDir ".venv\Scripts\python.exe") -m pip install -r (Join-Path $backendDir "requirements.txt")
 
 Write-Host "==> Criando banco e dados de exemplo (seed)..."
-& (Join-Path $backendDir ".venv\Scripts\python.exe") (Join-Path $backendDir "seed.py")
+& (Join-Path $backendDir ".venv\Scripts\python.exe") (Join-Path $backendDir "scripts\seed.py")
 
 Write-Host "==> Preparando app Expo..."
 if (-not (Test-Path (Join-Path $frontendDir ".env"))) {

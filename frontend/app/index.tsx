@@ -16,18 +16,18 @@ import {
 import { useRouter } from "expo-router";
 
 import { Ionicons } from "@expo/vector-icons";
-import { apiPath, readJsonOrText, resolveApiBaseUrl } from "@/lib/api";
-import { getCurrentUser, logout, User } from "@/lib/auth";
-import { fetchWithAuth } from "@/lib/apiAuth";
-import { getCurrentSession, clearCurrentSession, sessionApiJson, saveCurrentSession } from "@/lib/sessionApi";
-import { CoachAthleteSummary, INITIAL_FORM, SYMPTOMS, URINE_COLORS } from "./constants";
-import { ABOUT_PARAGRAPHS, HELP_PARAGRAPHS } from "./infoContent";
-import { InfoScreen } from "./InfoScreen";
-import { styles } from "./index.styles";
-import { ReportScreen } from "./ReportScreen";
-import { urineColors } from "@/lib/theme";
-import { useFeedback } from "@/components/FeedbackProvider";
-import { StatusBanner } from "@/components/StatusBanner";
+import { apiPath, readJsonOrText, resolveApiBaseUrl } from "@/biblioteca/api";
+import { getCurrentUser, logout, User } from "@/biblioteca/auth";
+import { fetchWithAuth } from "@/biblioteca/apiAuth";
+import { getCurrentSession, clearCurrentSession, sessionApiJson, saveCurrentSession } from "@/biblioteca/sessionApi";
+import { CoachAthleteSummary, INITIAL_FORM, SYMPTOMS, URINE_COLORS } from "@/biblioteca/constants";
+import { ABOUT_PARAGRAPHS, HELP_PARAGRAPHS } from "@/biblioteca/infoContent";
+import { TelaInfo } from "@/componentes/TelaInfo";
+import { styles } from "@/estilos/index.styles";
+import { TelaRelatorio } from "@/componentes/TelaRelatorio";
+import { urineColors } from "@/biblioteca/theme";
+import { useFeedback } from "@/componentes/ProvedorFeedback";
+import { BannerStatus } from "@/componentes/BannerStatus";
 
 const FLUID_PRESETS = [
   { icon: "💧", label: "Squeeze", volume: 150, source: "squeeze_bottle" },
@@ -507,7 +507,7 @@ export default function Index() {
       ) : null}
 
       {activeScreen === "report" ? (
-        <ReportScreen 
+        <TelaRelatorio 
           athleteName={user?.name || form.athleteName} 
           apiBaseUrl={apiBaseUrl}
           userRole={user?.role === "team" ? "team" : "athlete"}
@@ -515,9 +515,9 @@ export default function Index() {
           onSelectAthlete={(athlete) => updateField("athleteName", athlete.name)}
         />
       ) : activeScreen === "about" ? (
-        <InfoScreen title="Sobre" paragraphs={ABOUT_PARAGRAPHS} />
+        <TelaInfo title="Sobre" paragraphs={ABOUT_PARAGRAPHS} />
       ) : activeScreen === "help" ? (
-        <InfoScreen title="Ajuda" paragraphs={HELP_PARAGRAPHS} />
+        <TelaInfo title="Ajuda" paragraphs={HELP_PARAGRAPHS} />
       ) : activeScreen === "athlete" ? (
         <ScrollView contentContainerStyle={styles.container}>
           <View style={styles.contentCard}>
@@ -663,8 +663,8 @@ export default function Index() {
           <Text style={styles.coachTitle}>{selectedAthlete?.name}</Text>
           <Text style={styles.coachSectionTitle}>Sessões Registradas</Text>
 
-          {coachLoading ? <StatusBanner message="Carregando sessoes..." variant="loading" /> : null}
-          {coachError ? <StatusBanner message={coachError} variant="error" /> : null}
+          {coachLoading ? <BannerStatus message="Carregando sessoes..." variant="loading" /> : null}
+          {coachError ? <BannerStatus message={coachError} variant="error" /> : null}
           {!coachLoading && !coachError && athleteSessions.length === 0 ? (
             <Text style={styles.coachEmpty}>Nenhuma sessão registrada para este atleta.</Text>
           ) : null}
@@ -1000,8 +1000,8 @@ export default function Index() {
           <Text style={styles.coachTitle}>Bem vindo(a), {user?.name}!</Text>
           <Text style={styles.coachSectionTitle}>Atletas</Text>
 
-          {coachLoading ? <StatusBanner message="Carregando atletas..." variant="loading" /> : null}
-          {coachError ? <StatusBanner message={coachError} variant="error" /> : null}
+          {coachLoading ? <BannerStatus message="Carregando atletas..." variant="loading" /> : null}
+          {coachError ? <BannerStatus message={coachError} variant="error" /> : null}
           {!coachLoading && !coachError && coachAthletes.length === 0 ? (
             <Text style={styles.coachEmpty}>Nenhum registro salvo ainda. Peça para o atleta enviar o formulario primeiro.</Text>
           ) : null}

@@ -11,10 +11,10 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 
-import { register } from "@/lib/auth";
-import { loginStyles as styles } from "./login.styles";
-import { useFeedback } from "@/components/FeedbackProvider";
-import { StatusBanner } from "@/components/StatusBanner";
+import { register } from "@/biblioteca/auth";
+import { loginStyles as styles } from "@/estilos/login.styles";
+import { useFeedback } from "@/componentes/ProvedorFeedback";
+import { BannerStatus } from "@/componentes/BannerStatus";
 
 type RoleOption = "athlete" | "team";
 
@@ -117,7 +117,7 @@ export default function RegisterScreen() {
             <TextInput style={styles.input} value={sport} onChangeText={setSport} />
           </View>
 
-          {fieldError ? <StatusBanner message={fieldError} variant="error" /> : null}
+          {fieldError ? <BannerStatus message={fieldError} variant="error" /> : null}
 
           <TouchableOpacity
             style={[styles.button, loading && styles.buttonDisabled]}
