@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 import { apiPath, readJsonOrText, resolveApiBaseUrl } from "./api";
-import { getToken } from "./auth";
+import { getToken, logout } from "./auth";
 
 const SESSION_KEY = "hydra_current_session";
 
@@ -39,6 +39,11 @@ export async function sessionApiJson<T>(
 
   const response = await fetch(url, { ...init, headers });
   const body = await readJsonOrText(response);
+
+  if (response.status === 401) {
+    await logout();
+    throw new Error("Sessao expirada. Faca login novamente.");
+  }
 
   if (!response.ok) {
     const msg =

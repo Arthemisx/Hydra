@@ -9,11 +9,12 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
 
 def encode_token(user_id, role):
-    return jwt.encode(
+    token = jwt.encode(
         {"user_id": user_id, "role": role},
         Config.JWT_SECRET,
         algorithm="HS256",
     )
+    return token if isinstance(token, str) else token.decode("utf-8")
 
 
 def decode_token(token):

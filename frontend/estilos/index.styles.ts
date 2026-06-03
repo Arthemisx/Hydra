@@ -221,6 +221,7 @@ export const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 24,
     minHeight: "100%",
+    backgroundColor: "#ffffff",
   },
   coachTopBar: {
     flexDirection: "row",
@@ -233,7 +234,6 @@ export const styles = StyleSheet.create({
     fontSize: 50,
     fontWeight: "700",
     color: "#121212",
-    textDecorationLine: "underline",
   },
   coachSectionTitle: {
     color: "#e01919",
@@ -265,7 +265,7 @@ export const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#d04044",
     borderRadius: 12,
-    backgroundColor: "#fff",
+    backgroundColor: "#e8e8e8",
     padding: 10,
   },
   coachCardHeader: {
@@ -339,5 +339,87 @@ export const styles = StyleSheet.create({
     fontSize: 20,
     color: "#121212",
     fontWeight: "500",
+  },
+  giPhaseRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  giPhasePill: {
+    borderWidth: 1,
+    borderColor: "#bdbdbd",
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    backgroundColor: "#e6e6e6",
+  },
+  giPhasePillActive: {
+    backgroundColor: "#d04044",
+    borderColor: "#d04044",
+  },
+  giPhasePillDone: {
+    backgroundColor: "#fff",
+    borderColor: "#d04044",
+  },
+  giPhaseText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#1f1f1f",
+  },
+  giPhaseTextActive: {
+    color: "#fff",
+  },
+  giPhaseTextDone: {
+    color: "#d04044",
+  },
+  giIntroBox: {
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#bdbdbd",
+    padding: 12,
+    marginTop: 8,
+  },
+  giFooterRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginTop: 16,
+  },
+  giSecondaryButton: {
+    flex: 1,
+    backgroundColor: "#e8e8e8",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  giPrimaryButton: {
+    flex: 1,
+  },
+  sessionTypeCard: {
+    borderWidth: 2,
+    borderColor: "#bdbdbd",
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 10,
+    backgroundColor: "#fff",
+  },
+  sessionTypeCardSelected: {
+    borderColor: "#d04044",
+    backgroundColor: "#fff8f8",
+  },
+  sessionTypeTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1f1f1f",
+    marginBottom: 4,
+  },
+  sessionTypeDesc: {
+    fontSize: 13,
+    color: "#7f7f7f",
+    lineHeight: 18,
   },
 });

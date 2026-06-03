@@ -73,7 +73,7 @@ ou, no PowerShell (com política liberada):
 .\run.ps1
 ```
 
-- **Backend:** http://localhost:5000  
+- **Backend:** http://localhost:5000
 - **App:** escaneie o QR code do Expo (porta 8083)
 
 ### Usuários de demonstração (após o seed)
