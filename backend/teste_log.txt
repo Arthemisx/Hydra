@@ -1,0 +1,46 @@
+=== Iniciando teste ===
+Carregando .env de C:\Users\HP\Downloads\Projeto São Camilo\Hydra\backend\.env
+=== Iniciando análise da sessão ===
+OPENROUTER_API_KEY está configurada? Sim
+Modelo selecionado: openrouter/free
+Enviando requisição para https://openrouter.ai/api/v1/chat/completions...
+Status code da resposta: 200
+Conteúdo da resposta (primeiros 500 chars): 
+         
+
+         
+
+         
+
+         
+
+         
+
+         
+
+         
+
+         
+
+         
+
+         
+
+         
+
+         
+
+         
+
+         
+
+         
+
+         
+
+         
+{"id":"gen-1780317367-XLDRs1fiVU1LMkerg2ky","object":"chat.completion","created":1780317367,"model":"liquid/lfm-2.5-1.2b-thinking-20260120:free","provider":"Liquid","system_fingerprint":null,"service_tier":null,"choices":[{"index":0,"logprobs":null,"finish_reason":"stop","native_finish_reason":"stop","message":{
+Análise da API obtida com sucesso!
+
+=== Resultado final ===
+A avaliação da hidratação indica perda leve (0,7kg) com taxa de suor estável (1,2L/h), sugerindo adequação basal. No entanto, o peso pós-seção pode refletir desgaste, exigindo atenção. Recomenda-se monitorar fluidos e ajustar consumo para compensar. Considerando a temperatura (25°C) e alta umidade (60%), risco de desidratação leve aumenta, necessitando reforço. Observações sobre sintomas gastrointestinais são ausentes, mas atenção à digestão é crucial. Dicas baseadas na RPE mostram que, com intensidade elevada (7-8), hidratação deve ser priorizada; reforçar suporte na próxima sessão é essencial. Aumentar ingestão de água e monitorar sinais de fadiga ajuda a evitar descompensolação. Manter hidratação equilibrada evita complicações, reforçando a importância de ajustes contínuos conforme condições ambientais e esforço. Priorizar equilíbrio nutricional e hidratação equilibrada maximiza desempenho e bem-estar, garantindo sustentação durante atividades físicas rigorosas. Ajustes estratégicos são fundamentais para manter eficiência e prevenir riscos associados à fadiga. Essas práticas contribuem para recuperação otimizada e sustentação contínua, alinhando-se às demandas do atletismo. Acompanhamento constante assegura resultados consistentes, reforçando a necessidade de adaptação dinâmica. O foco deve permanecer na integridade do corpo, garantindo suporte adequado em todas as etapas do processo. Avaliação contínua e intervenção proativa são pilares para garantir sucesso e saúde, reforçando a importância de uma abordagem holística. Essa síntese reforça a necessidade de adaptação constante, alinhando corpo e treino para alcançar resultados maximizados.

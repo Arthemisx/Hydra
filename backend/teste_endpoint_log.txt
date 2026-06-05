@@ -1,0 +1,5 @@
+Testando endpoint /api/weather
+========================================
+Status Code: 200
+✅ Sucesso!
+Dados: {'description': 'Neblina', 'humidity': 80, 'temperature': 17.4}

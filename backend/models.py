@@ -71,7 +71,7 @@ class Session(db.Model):
     humidity_pct = db.Column(db.Numeric(4, 1))
     sport = db.Column(db.String(80))
     expected_duration_min = db.Column(db.Integer)
-    perceived_intensity = db.Column(db.String(20))
+    perceived_intensity = db.Column(db.Integer)
     urine_color = db.Column(db.Integer)
     thirst_level = db.Column(db.Integer)
     symptoms_pre = db.Column(db.Text)
@@ -84,7 +84,9 @@ class Session(db.Model):
     post_mass_kg = db.Column(db.Numeric(5, 2))
     soaked_clothing = db.Column(db.Boolean, default=False)
     gi_symptoms = db.Column(db.Text)
+    gi_responses = db.Column(db.Text)
     fatigue_level = db.Column(db.Integer)
+    perceived_intensity_post = db.Column(db.Integer)
 
     adjusted_loss_kg = db.Column(db.Numeric(5, 3))
     sweat_rate_lh = db.Column(db.Numeric(5, 3))
@@ -98,6 +100,15 @@ class Session(db.Model):
     fluid_events = db.relationship("FluidEvent", backref="session", cascade="all, delete-orphan")
 
     def to_dict(self):
+        import json
+
+        gi_parsed = None
+        if self.gi_responses:
+            try:
+                gi_parsed = json.loads(self.gi_responses)
+            except json.JSONDecodeError:
+                gi_parsed = None
+
         return {
             "id": self.id,
             "athlete_id": self.athlete_id,
@@ -110,6 +121,7 @@ class Session(db.Model):
             "sport": self.sport,
             "expected_duration_min": self.expected_duration_min,
             "perceived_intensity": self.perceived_intensity,
+            "perceived_intensity_post": self.perceived_intensity_post,
             "urine_color": self.urine_color,
             "thirst_level": self.thirst_level,
             "symptoms_pre": self.symptoms_pre,
@@ -120,6 +132,7 @@ class Session(db.Model):
             "post_mass_kg": float(self.post_mass_kg) if self.post_mass_kg else None,
             "soaked_clothing": self.soaked_clothing,
             "gi_symptoms": self.gi_symptoms,
+            "gi_responses": gi_parsed,
             "fatigue_level": self.fatigue_level,
             "adjusted_loss_kg": float(self.adjusted_loss_kg) if self.adjusted_loss_kg else None,
             "sweat_rate_lh": float(self.sweat_rate_lh) if self.sweat_rate_lh else None,
@@ -127,6 +140,28 @@ class Session(db.Model):
             "hydration_balance_ml": float(self.hydration_balance_ml) if self.hydration_balance_ml else None,
             "recommended_intake_ml_h": float(self.recommended_intake_ml_h) if self.recommended_intake_ml_h else None,
             "alert_level": self.alert_level,
+            "athlete": self.athlete.to_dict() if self.athlete else None,
+        }
+
+
+class GiCompetitionSurvey(db.Model):
+    __tablename__ = "gi_competition_surveys"
+
+    id = db.Column(db.Integer, primary_key=True)
+    athlete_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    responses = db.Column(db.Text, nullable=False)
+
+    athlete = db.relationship("User", foreign_keys=[athlete_id])
+
+    def to_dict(self):
+        import json
+
+        return {
+            "id": self.id,
+            "athlete_id": self.athlete_id,
+            "created_at": self.created_at.isoformat(),
+            "responses": json.loads(self.responses) if self.responses else {},
             "athlete": self.athlete.to_dict() if self.athlete else None,
         }
 

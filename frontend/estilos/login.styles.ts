@@ -4,7 +4,7 @@ import { StyleSheet } from "react-native";
 export const loginStyles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#cccccc",
+    backgroundColor: "#ffffff",
     justifyContent: "center",
     alignItems: "center",
     padding: 20,
@@ -16,7 +16,7 @@ export const loginStyles = StyleSheet.create({
     marginBottom: 24,
   },
   card: {
-    backgroundColor: "#f6f6f6",
+    backgroundColor: "#ffffff",
     borderRadius: 10,
     borderWidth: 1,
     borderColor: "#b4b4b4",
@@ -50,7 +50,7 @@ export const loginStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#484848",
     borderRadius: 20,
-    backgroundColor: "#d9d9d9",
+    backgroundColor: "#ffffff",
     paddingHorizontal: 14,
     fontSize: 16,
   },

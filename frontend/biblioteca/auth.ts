@@ -19,12 +19,39 @@ type AuthResponse = {
 };
 
 async function persistAuth(data: AuthResponse) {
-  await AsyncStorage.setItem(TOKEN_KEY, data.token);
+  const token = data.token?.trim?.() ? data.token.trim() : String(data.token);
+  await AsyncStorage.setItem(TOKEN_KEY, token);
   await AsyncStorage.setItem(USER_KEY, JSON.stringify(data.user));
 }
 
 export async function getToken(): Promise<string | null> {
-  return AsyncStorage.getItem(TOKEN_KEY);
+  const raw = await AsyncStorage.getItem(TOKEN_KEY);
+  if (!raw) return null;
+  const trimmed = raw.trim().replace(/^"|"$/g, "");
+  return trimmed || null;
+}
+
+export async function validateAuth(): Promise<User | null> {
+  const token = await getToken();
+  if (!token) {
+    await logout();
+    return null;
+  }
+
+  const base = resolveApiBaseUrl();
+  const response = await fetch(apiPath(base, "/api/auth/me"), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  if (!response.ok) {
+    await logout();
+    return null;
+  }
+
+  const body = await readJsonOrText(response);
+  const user = body as User;
+  await AsyncStorage.setItem(USER_KEY, JSON.stringify(user));
+  return user;
 }
 
 export async function getCurrentUser(): Promise<User | null> {

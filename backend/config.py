@@ -17,4 +17,4 @@ class Config:
         "sqlite:///hydra.db",
     )
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    JWT_SECRET = os.environ.get("JWT_SECRET", "hydra-dev-secret-2026-saocamilo")
+    JWT_SECRET = os.environ.get("JWT_SECRET", "hydra-dev-secret-change-in-production")
