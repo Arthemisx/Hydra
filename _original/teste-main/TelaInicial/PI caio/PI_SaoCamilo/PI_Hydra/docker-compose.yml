@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: nutri
+      POSTGRES_USER: nutri
+      POSTGRES_PASSWORD: nutri123
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      DATABASE_URL: postgresql://nutri:nutri123@db:5432/nutri
+      JWT_SECRET: dev-secret-change-me
+      FLASK_ENV: development
+    depends_on:
+      - db
+    volumes:
+      - ./backend:/app
+
+  web:
+    build: ./web
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:5000/api
+    depends_on:
+      - backend
+    volumes:
+      - ./web/src:/app/src
+
+volumes:
+  pgdata:

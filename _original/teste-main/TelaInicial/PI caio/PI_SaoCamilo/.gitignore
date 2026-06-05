@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Arquivos gerados pelo pipeline (testes / saídas)
+teste_*.png
+teste_*.dds
+output.png
+output.dds
+
+# Assets 3D proprietários (não versionar)
+*.obj
+
+# IDE / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Sessão persistida do Claude Code (mount do dev container)
+
+
+# Projeto AK13 (local only)
+AK13/
+
+# Node
+node_modules/
+
+# Next.js
+.next/
+
+# Python
+__pycache__/
+*.db
+instance/
+
+# Expo
+.expo/

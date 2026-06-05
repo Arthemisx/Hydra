@@ -1,0 +1,89 @@
+.App {
+  text-align: center;
+  font-family: Arial;
+}
+
+.App-header {
+  background-color: #cccccc;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* font-size: calc(10px + 2vmin); */
+  color: #000000;
+  min-width: 300vh;
+}
+
+.App-link {
+  color: #1500ff;
+}
+ 
+.App h1{
+    color: #db0404;
+    font-size: 60;
+}
+
+.form-login {
+    background-color: #f6f6f6;
+    width: 25%;
+    /* min-height: 70vh; */
+    min-width: 80vh;
+    /* margin: 30; */
+    border-radius: 10;
+    border-color: #b4b4b4;
+    border-width: 1;
+    border-style: solid;
+    padding: 0 20 20 20;
+    text-align: center;
+}
+
+.form-login input{
+    border-color: #484848;
+    border-radius: 20;
+    border-width: 1;
+    border-style: solid;
+    background-color: #d9d9d9;
+    /* margin: 10; */
+    display: block;
+    height: 40;
+    width: 90%;
+    margin-bottom: 15;
+}
+/* 
+.form-login p{
+    text-align: start;
+    font-size: larger;
+    margin-top: 40; 
+}*/
+
+.form-login button{
+    background-color: #d04044;
+    border: none;
+    border-radius: 5;
+    height: 40;
+    width: 200;
+    margin: 5%;
+    font-size: large;
+    color: white;
+    letter-spacing: 1;
+}
+
+.login-input{
+    margin-left: 5%;
+    text-align: start;
+    font-size: larger;
+}
+
+.cad-div {
+    font-size: large;
+}
+
+.cad-div a{
+    text-decoration: none;
+    color: #1100cc;
+}
+
+.cad-div a:hover{
+    text-decoration: underline;
+}
