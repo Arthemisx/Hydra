@@ -10,7 +10,7 @@ import {
 import { reportStyles } from "./report.styles";
 
 const PERIODS: { key: ReportPeriod; label: string }[] = [
-  { key: "daily", label: "Diario" },
+  { key: "daily", label: "Diário" },
   { key: "weekly", label: "Semanal" },
   { key: "monthly", label: "Mensal" },
 ];
@@ -58,7 +58,7 @@ export function ReportScreen({ athleteName, apiBaseUrl }: Props) {
   const handleGenerate = async () => {
     const name = athleteName.trim();
     if (!name) {
-      Alert.alert("Atleta", "Preencha o nome do atleta na Tela Inicial antes de gerar o relatorio.");
+      Alert.alert("Atleta", "Preencha o nome do atleta na Tela Inicial antes de gerar o relatório.");
       return;
     }
 
@@ -69,10 +69,10 @@ export function ReportScreen({ athleteName, apiBaseUrl }: Props) {
       if (result.kind === "longitudinal") {
         setPanel(result.data);
       } else {
-        Alert.alert("Relatorio", `Arquivo gerado: ${result.filename}`);
+        Alert.alert("Relatório", `Arquivo gerado: ${result.filename}`);
       }
     } catch (e) {
-      Alert.alert("Erro", e instanceof Error ? e.message : "Nao foi possivel gerar o relatorio.");
+      Alert.alert("Erro", e instanceof Error ? e.message : "Não foi possível gerar o relatório.");
     } finally {
       setLoading(false);
     }
@@ -84,7 +84,7 @@ export function ReportScreen({ athleteName, apiBaseUrl }: Props) {
 
       <View style={colsStyle}>
         <View style={reportStyles.panel}>
-          <Text style={reportStyles.panelTitle}>Selecione o periodo de tempo</Text>
+          <Text style={reportStyles.panelTitle}>Selecione o período de tempo</Text>
           {PERIODS.map((p) => (
             <CheckRow key={p.key} label={p.label} selected={period === p.key} onPress={() => setPeriod(p.key)} />
           ))}
@@ -107,7 +107,7 @@ export function ReportScreen({ athleteName, apiBaseUrl }: Props) {
           {loading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={reportStyles.generateBtnText}>Gerar relatorio</Text>
+            <Text style={reportStyles.generateBtnText}>Gerar relatório</Text>
           )}
         </Pressable>
       </View>
@@ -120,14 +120,14 @@ export function ReportScreen({ athleteName, apiBaseUrl }: Props) {
             {"\n"}
             Registros: {panel.summary.entryCount}
             {panel.summary.avgWaterIntakeMl != null
-              ? ` | Media agua: ${panel.summary.avgWaterIntakeMl} mL`
+              ? ` | Média água: ${panel.summary.avgWaterIntakeMl} mL`
               : ""}
-            {panel.summary.avgWeightAfterKg != null ? ` | Media peso (depois): ${panel.summary.avgWeightAfterKg} kg` : ""}
+            {panel.summary.avgWeightAfterKg != null ? ` | Média peso (depois): ${panel.summary.avgWeightAfterKg} kg` : ""}
           </Text>
           {panel.entries.map((row) => (
             <View key={row.id} style={reportStyles.panelRow}>
               <Text style={reportStyles.panelRowText}>
-                {row.entryDate} — Agua {row.waterIntakeMl} mL | Peso {row.weightBeforeKg}→{row.weightAfterKg} kg | Urina{" "}
+                {row.entryDate} — Água {row.waterIntakeMl} mL | Peso {row.weightBeforeKg}→{row.weightAfterKg} kg | Urina{" "}
                 {row.urineVolumeMl} mL | {row.urineColor}
                 {row.symptoms ? ` | ${row.symptoms}` : ""}
               </Text>

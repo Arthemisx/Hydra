@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#d9d9d9",
+    backgroundColor: "#f5f7fa",
     position: "relative",
   },
   sidebarOpenHandle: {

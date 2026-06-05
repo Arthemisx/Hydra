@@ -6,7 +6,7 @@ export const URINE_COLORS = [
   "Escura",
 ];
 
-export const SYMPTOMS = ["Nenhum", "Sede intensa", "Tontura", "Dor de cabeca", "Caibra", "Nausea"];
+export const SYMPTOMS = ["Nenhum", "Sede intensa", "Tontura", "Dor de cabeca", "Câimbra", "Naúsea"];
 
 export const today = new Date().toISOString().slice(0, 10);
 

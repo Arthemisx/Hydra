@@ -53,7 +53,7 @@ async function saveAndShareFile(bytes: ArrayBuffer, filename: string, mime: stri
   file.write(new Uint8Array(bytes));
   const canShare = await Sharing.isAvailableAsync();
   if (canShare) {
-    await Sharing.shareAsync(file.uri, { mimeType: mime, dialogTitle: "Relatorio" });
+    await Sharing.shareAsync(file.uri, { mimeType: mime, dialogTitle: "Relatório" });
   } else {
     Alert.alert("Arquivo salvo", file.uri);
   }

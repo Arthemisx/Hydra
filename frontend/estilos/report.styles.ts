@@ -36,7 +36,7 @@ export const reportStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#b0b0b0",
     borderRadius: 12,
-    backgroundColor: "#e8e8e8",
+    backgroundColor: "#b0b0b0",
     paddingHorizontal: 14,
     paddingTop: 12,
     paddingBottom: 14,

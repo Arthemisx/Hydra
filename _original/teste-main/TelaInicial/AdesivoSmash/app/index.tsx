@@ -123,16 +123,16 @@ export default function Index() {
 
   const handleSubmit = async () => {
     if (!form.athleteName) {
-      Alert.alert("Campo obrigatorio", "Nome do atleta e obrigatorio.");
+      Alert.alert("Campo obrigatório", "Nome do atleta é obrigatério.");
       return;
     }
     if (!form.waterIntakeMl || !form.weightBeforeKg || !form.weightAfterKg || !form.clothing || !form.urineColor) {
-      Alert.alert("Campos obrigatorios", "Preencha todos os campos antes de salvar.");
+      Alert.alert("Campos obrigatórios", "Preencha todos os campos antes de salvar.");
       return;
     }
 
     if (urineVolumeMl <= 0) {
-      Alert.alert("Pesos invalidos", "O peso antes precisa ser maior que o peso depois.");
+      Alert.alert("Pesos inválidos", "O peso antes precisa ser maior que o peso depois.");
       return;
     }
 
@@ -141,7 +141,7 @@ export default function Index() {
     const weightAfterKg = parseNumber(form.weightAfterKg);
 
     if (Number.isNaN(waterIntakeMl) || Number.isNaN(weightBeforeKg) || Number.isNaN(weightAfterKg)) {
-      Alert.alert("Numeros invalidos", "Revise os campos numericos.");
+      Alert.alert("Némeros invalidos", "Revise os campos númericos.");
       return;
     }
 
@@ -173,7 +173,7 @@ export default function Index() {
           "Erro ao salvar",
           (body && typeof body === "object" && "error" in body && (body as { error?: string }).error) ||
             extra ||
-            "Nao foi possivel salvar agora.",
+            "Não foi possível salvar agora.",
         );
         return;
       }
@@ -186,8 +186,8 @@ export default function Index() {
       });
     } catch {
       Alert.alert(
-        "Sem conexao com a API",
-        `Verifique se o Flask esta rodando em ${apiBaseUrl} e se o MySQL esta ativo.`,
+        "Sem conexão com a API",
+        `Verifique se o Flask esta rodando em ${apiBaseUrl} e se o MySQL está ativo.`,
       );
     } finally {
       setIsSubmitting(false);
@@ -208,7 +208,7 @@ export default function Index() {
         setCoachError(
           (data && typeof body === "object" && "error" in data && (data as { error?: string }).error) ||
             extra ||
-            "Nao foi possivel carregar os atletas.",
+            "Não foi possível carregar os atletas.",
         );
         return;
       }
