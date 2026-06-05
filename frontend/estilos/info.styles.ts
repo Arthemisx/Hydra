@@ -3,7 +3,7 @@ import { StyleSheet } from "react-native";
 export const infoStyles = StyleSheet.create({
   screen: {
     flex: 1,
-    backgroundColor: "#d9d9d9",
+    backgroundColor: "#f5f7fa",
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -23,15 +23,25 @@ export const infoStyles = StyleSheet.create({
   title: {
     fontSize: 42,
     fontWeight: "700",
-    color: "#121212",
-    marginBottom: 24,
+    color: "#d04044",
+    marginBottom: 20,
   },
   card: {
     backgroundColor: "#fff",
     borderRadius: 12,
     padding: 48,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#f1f3f6",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+  
+    },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+
+    elevation: 4,
   },
   paragraph: {
     fontSize: 16,
