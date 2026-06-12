@@ -1,9 +1,9 @@
 from datetime import date
-from flask import Flask, Response, jsonify, request
+from flask import Flask, Response, jsonify, request, g
 from flask_cors import CORS
 from config import Config
-from models import db
-from autenticacao import auth_bp
+from models import db, User
+from autenticacao import auth_bp, jwt_required
 from rotas_sessao import session_bp
 from rotas_relatorios import reports_bp
 from rotas_diario import daily_bp
@@ -39,11 +39,20 @@ def create_app():
     app.register_blueprint(gi_survey_bp)
 
     @app.route("/api/reports/generate", methods=["POST"])
+    @jwt_required
     def generate_report():
         payload = request.get_json(silent=True) or {}
-        athlete_name = str(payload.get("athleteName", "")).strip()
         period = str(payload.get("period", "")).strip().lower()
         fmt = str(payload.get("format", "")).strip().lower()
+
+        current_user = User.query.get(g.user_id)
+        if not current_user:
+            return jsonify({"error": "Usuário não encontrado."}), 404
+
+        athlete_name = current_user.name.strip()
+        requested_name = str(payload.get("athleteName", "")).strip()
+        if requested_name and requested_name.lower() != athlete_name.lower():
+            return jsonify({"error": "Voce só pode gerar o próprio relatorio."}), 403
 
         if not athlete_name:
             return jsonify({"error": "Informe o nome do atleta."}), 400
