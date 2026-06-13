@@ -81,8 +81,10 @@ const MOCK_ATHLETES: (CoachAthleteSummary & {
 ];
 
 export function TelaRelatorio({
-  userRole,
+  athleteName,
   apiBaseUrl,
+  userRole,
+  athletes,
 }: Props) {
   const { showSuccess } = useFeedback();
   const [searchQuery, setSearchQuery] = useState("");
@@ -92,8 +94,11 @@ export function TelaRelatorio({
   const [currentAthlete, setCurrentAthlete] = useState<string | null>(null);
   const [selectedPeriod, setSelectedPeriod] = useState<string>("");
   const [reportFormat, setReportFormat] = useState<"PDF" | "Excel">("PDF");
+  const [generatedReportsCount, setGeneratedReportsCount] = useState(0);
 
-  // Period options (UI label → backend code)
+  const isTeamUser = userRole === "team";
+  const athleteReportName = athleteName.trim();
+
   const PERIOD_OPTIONS = [
     { label: "Última semana", code: "weekly" },
     { label: "Último mês", code: "monthly" },
@@ -102,15 +107,21 @@ export function TelaRelatorio({
     { label: "Último ano", code: "yearly" },
   ];
 
-  // Filter athletes
-  const filteredAthletes = MOCK_ATHLETES.filter((athlete) => {
-    const matchesSearch = athlete.name.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesTeam = selectedTeam === "Todas as equipes" || athlete.team === selectedTeam;
-    return matchesSearch && matchesTeam;
-  });
+  const athleteSummary = athletes.find(
+    (athlete) => athlete.name.toLowerCase() === athleteReportName.toLowerCase(),
+  );
+  const athleteSessionsCount = athleteSummary?.totalEntries ?? 0;
 
-  const handleGenerateReport = (athleteName: string) => {
-    setCurrentAthlete(athleteName);
+  const filteredAthletes = isTeamUser
+    ? MOCK_ATHLETES.filter((athlete) => {
+        const matchesSearch = athlete.name.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesTeam = selectedTeam === "Todas as equipes" || athlete.team === selectedTeam;
+        return matchesSearch && matchesTeam;
+      })
+    : [];
+
+  const handleGenerateReport = (selectedName: string) => {
+    setCurrentAthlete(selectedName);
     setSelectedPeriod("");
     setReportFormat("PDF");
     setShowReportModal(true);
@@ -121,10 +132,10 @@ export function TelaRelatorio({
       showSuccess("Por favor, selecione um período!");
       return;
     }
-    
-    const periodObj = PERIOD_OPTIONS.find(p => p.label === selectedPeriod);
+
+    const periodObj = PERIOD_OPTIONS.find((period) => period.label === selectedPeriod);
     if (!periodObj) return;
-    
+
     try {
       const response = await fetch(`${apiBaseUrl}/api/reports/generate`, {
         method: "POST",
@@ -142,201 +153,242 @@ export function TelaRelatorio({
         return;
       }
 
-      // Download file
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `relatorio_${currentAthlete}_${periodObj.code}.${reportFormat === "PDF" ? "pdf" : "csv"}`;
-      a.click();
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = `relatorio_${currentAthlete}_${periodObj.code}.${reportFormat === "PDF" ? "pdf" : "csv"}`;
+      anchor.click();
       window.URL.revokeObjectURL(url);
-      
+
       showSuccess(`Relatório para ${currentAthlete} gerado com sucesso!`);
+      if (!isTeamUser) {
+        setGeneratedReportsCount((count) => count + 1);
+      }
       setShowReportModal(false);
-    } catch (err) {
+    } catch {
       showSuccess("Erro ao conectar ao servidor!");
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
         <Text style={styles.pageTitle}>Relatórios</Text>
         <Text style={styles.pageSubtitle}>
-          Selecione o atleta para visualizar ou gerar o relatório.
+          {isTeamUser
+            ? "Selecione o atleta para visualizar ou gerar o relatório."
+            : "Baixe o PDF ou uma planilha contendo o seu relatório."}
         </Text>
       </View>
 
-      {/* Stats Cards */}
-      <View style={styles.statsRow}>
+      {!isTeamUser ? (
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <View style={[styles.statIcon, { backgroundColor: "#FFF9E6" }]}>
+              <Ionicons name="document-text-outline" size={28} color="#F5A623" />
+            </View>
+            <Text style={[styles.statNumber, { color: "#F5A623" }]}>{athleteSessionsCount}</Text>
+            <Text style={styles.statLabel}>Sessões registradas</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <View style={[styles.statIcon, { backgroundColor: "#F0FDF4" }]}>
+              <Ionicons name="bar-chart-outline" size={28} color="#22C55E" />
+            </View>
+            <Text style={[styles.statNumber, { color: "#22C55E" }]}>{generatedReportsCount}</Text>
+            <Text style={styles.statLabel}>Relatórios gerados</Text>
+          </View>
+        </View>
+      ) : null}
+
+      {!isTeamUser ? (
         <View style={styles.statCard}>
           <View style={[styles.statIcon, { backgroundColor: "#FFF0F0" }]}>
-            <Ionicons name="people-outline" size={28} color="#D04044" />
+            <Ionicons name="person-outline" size={28} color="#D04044" />
           </View>
-          <Text style={[styles.statNumber, { color: "#D04044" }]}>6</Text>
-          <Text style={styles.statLabel}>Atletas cadastrados</Text>
-        </View>
-
-        <View style={styles.statCard}>
-          <View style={[styles.statIcon, { backgroundColor: "#FFF9E6" }]}>
-            <Ionicons name="document-text-outline" size={28} color="#F5A623" />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.pageTitle}>{athleteReportName || "Atleta"}</Text>
+            <Text style={styles.pageSubtitle}>
+              Relatório individual do usuário autenticado.
+            </Text>
           </View>
-          <Text style={[styles.statNumber, { color: "#F5A623" }]}>50</Text>
-          <Text style={styles.statLabel}>Sessões registradas</Text>
-        </View>
-
-        <View style={styles.statCard}>
-          <View style={[styles.statIcon, { backgroundColor: "#F0FDF4" }]}>
-            <Ionicons name="bar-chart-outline" size={28} color="#22C55E" />
-          </View>
-          <Text style={[styles.statNumber, { color: "#22C55E" }]}>8</Text>
-          <Text style={styles.statLabel}>Relatórios gerados</Text>
-        </View>
-      </View>
-
-      {/* Filters */}
-      <View style={styles.filtersRow}>
-        {/* Search */}
-        <View style={styles.searchContainer}>
-          <Ionicons
-            name="search-outline"
-            size={20}
-            color="#7F7F7F"
-            style={styles.searchIcon}
-          />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Buscar atleta..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
-          <Text style={styles.selectedTeamText}>Equipe: {selectedTeam}</Text>
-        </View>
-
-        {/* Team Filter */}
-        <View style={styles.filterDropdown}>
           <Pressable
-            style={styles.dropdownContainer}
-            onPress={() => setIsTeamDropdownOpen(!isTeamDropdownOpen)}
+            style={styles.generateButton}
+            onPress={() => handleGenerateReport(athleteReportName || athleteName)}
           >
-            <Text style={styles.filterLabel}>Equipe</Text>
-            <Ionicons
-              name={isTeamDropdownOpen ? "chevron-up" : "chevron-down"}
-              size={16}
-              color="#7F7F7F"
-            />
+            <Ionicons name="document-text-outline" size={18} color="#FFFFFF" />
+            <Text style={styles.generateButtonText}>Gerar meu relatório</Text>
           </Pressable>
         </View>
-      </View>
+      ) : null}
 
-      {/* Athletes Grid */}
-      <View style={styles.athletesGrid}>
-        {filteredAthletes.map((athlete) => (
-          <View key={athlete.name} style={styles.athleteCard}>
-            <View style={styles.athleteHeader}>
-              <View style={styles.athleteAvatar}>
-                <Ionicons name="person-outline" size={32} color="#D04044" />
-              </View>
-              <View style={styles.athleteHeaderText}>
-                <Text style={styles.athleteName}>{athlete.name}</Text>
-                <View
-                  style={[
-                    styles.statusBadge,
-                    athlete.status === "Ativo"
-                      ? styles.statusBadgeActive
-                      : styles.statusBadgeInactive,
-                  ]}
-                >
-                  <Text
+      {isTeamUser ? (
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <View style={[styles.statIcon, { backgroundColor: "#FFF0F0" }]}>
+              <Ionicons name="people-outline" size={28} color="#D04044" />
+            </View>
+            <Text style={[styles.statNumber, { color: "#D04044" }]}>6</Text>
+            <Text style={styles.statLabel}>Atletas cadastrados</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <View style={[styles.statIcon, { backgroundColor: "#FFF9E6" }]}>
+              <Ionicons name="document-text-outline" size={28} color="#F5A623" />
+            </View>
+            <Text style={[styles.statNumber, { color: "#F5A623" }]}>50</Text>
+            <Text style={styles.statLabel}>Sessões registradas</Text>
+          </View>
+
+          <View style={styles.statCard}>
+            <View style={[styles.statIcon, { backgroundColor: "#F0FDF4" }]}>
+              <Ionicons name="bar-chart-outline" size={28} color="#22C55E" />
+            </View>
+            <Text style={[styles.statNumber, { color: "#22C55E" }]}>8</Text>
+            <Text style={styles.statLabel}>Relatórios gerados</Text>
+          </View>
+        </View>
+      ) : null}
+
+      {isTeamUser ? (
+        <View style={styles.filtersRow}>
+          <View style={styles.searchContainer}>
+            <Ionicons
+              name="search-outline"
+              size={20}
+              color="#7F7F7F"
+              style={styles.searchIcon}
+            />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Buscar atleta..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            <Text style={styles.selectedTeamText}>Equipe: {selectedTeam}</Text>
+          </View>
+
+          <View style={styles.filterDropdown}>
+            <Pressable
+              style={styles.dropdownContainer}
+              onPress={() => setIsTeamDropdownOpen(!isTeamDropdownOpen)}
+            >
+              <Text style={styles.filterLabel}>Equipe</Text>
+              <Ionicons
+                name={isTeamDropdownOpen ? "chevron-up" : "chevron-down"}
+                size={16}
+                color="#7F7F7F"
+              />
+            </Pressable>
+          </View>
+        </View>
+      ) : null}
+
+      {isTeamUser ? (
+        <View style={styles.athletesGrid}>
+          {filteredAthletes.map((athlete) => (
+            <View key={athlete.name} style={styles.athleteCard}>
+              <View style={styles.athleteHeader}>
+                <View style={styles.athleteAvatar}>
+                  <Ionicons name="person-outline" size={32} color="#D04044" />
+                </View>
+                <View style={styles.athleteHeaderText}>
+                  <Text style={styles.athleteName}>{athlete.name}</Text>
+                  <View
                     style={[
-                      styles.statusText,
+                      styles.statusBadge,
                       athlete.status === "Ativo"
-                        ? styles.statusTextActive
-                        : styles.statusTextInactive,
+                        ? styles.statusBadgeActive
+                        : styles.statusBadgeInactive,
                     ]}
                   >
-                    {athlete.status}
+                    <Text
+                      style={[
+                        styles.statusText,
+                        athlete.status === "Ativo"
+                          ? styles.statusTextActive
+                          : styles.statusTextInactive,
+                      ]}
+                    >
+                      {athlete.status}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+
+              <View style={styles.athleteStats}>
+                <View style={styles.athleteStatRow}>
+                  <Ionicons name="document-text-outline" size={18} color="#7F7F7F" />
+                  <Text style={styles.athleteStatText}>
+                    Sessões registradas: {" "}
+                    <Text
+                      style={athlete.totalEntries > 10 ? styles.athleteStatHighlight : undefined}
+                    >
+                      {athlete.totalEntries}
+                    </Text>
+                  </Text>
+                </View>
+
+                <View style={styles.athleteStatRow}>
+                  <Ionicons name="calendar-outline" size={18} color="#7F7F7F" />
+                  <Text style={styles.athleteStatText}>
+                    Última atualização: {athlete.lastEntryDate || "—"}
                   </Text>
                 </View>
               </View>
+
+              <Pressable
+                style={styles.generateButton}
+                onPress={() => handleGenerateReport(athlete.name)}
+              >
+                <Ionicons name="document-text-outline" size={18} color="#FFFFFF" />
+                <Text style={styles.generateButtonText}>Gerar Relatório</Text>
+              </Pressable>
             </View>
+          ))}
+        </View>
+      ) : null}
 
-            <View style={styles.athleteStats}>
-              <View style={styles.athleteStatRow}>
-                <Ionicons name="document-text-outline" size={18} color="#7F7F7F" />
-                <Text style={styles.athleteStatText}>
-                  Sessões registradas:{" "}
-                  <Text
-                    style={
-                      athlete.totalEntries > 10
-                        ? styles.athleteStatHighlight
-                        : undefined
-                    }
-                  >
-                    {athlete.totalEntries}
-                  </Text>
-                </Text>
-              </View>
-
-              <View style={styles.athleteStatRow}>
-                <Ionicons name="calendar-outline" size={18} color="#7F7F7F" />
-                <Text style={styles.athleteStatText}>
-                  Última atualização: {athlete.lastEntryDate || "—"}
-                </Text>
-              </View>
-            </View>
-
-            <Pressable
-              style={styles.generateButton}
-              onPress={() => handleGenerateReport(athlete.name)}
-            >
-              <Ionicons name="document-text-outline" size={18} color="#FFFFFF" />
-              <Text style={styles.generateButtonText}>Gerar Relatório</Text>
-            </Pressable>
-          </View>
-        ))}
-      </View>
-
-      {/* Team Dropdown Modal */}
-      <Modal
-        visible={isTeamDropdownOpen}
-        transparent
-        animationType="none"
-        onRequestClose={() => setIsTeamDropdownOpen(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setIsTeamDropdownOpen(false)}>
-          <View style={styles.dropdownModalContent}>
-            <Pressable style={styles.dropdownModalBackdrop} onPress={() => setIsTeamDropdownOpen(false)} />
-            <View style={styles.dropdownModalList}>
-              {TEAMS.map((team) => (
-                <Pressable
-                  key={team}
-                  style={[
-                    styles.dropdownModalOption,
-                    selectedTeam === team && styles.dropdownModalOptionSelected,
-                  ]}
-                  onPress={() => {
-                    setSelectedTeam(team);
-                    setIsTeamDropdownOpen(false);
-                  }}
-                >
-                  <Text
+      {isTeamUser ? (
+        <Modal
+          visible={isTeamDropdownOpen}
+          transparent
+          animationType="none"
+          onRequestClose={() => setIsTeamDropdownOpen(false)}
+        >
+          <Pressable style={styles.modalOverlay} onPress={() => setIsTeamDropdownOpen(false)}>
+            <View style={styles.dropdownModalContent}>
+              <Pressable style={styles.dropdownModalBackdrop} onPress={() => setIsTeamDropdownOpen(false)} />
+              <View style={styles.dropdownModalList}>
+                {TEAMS.map((team) => (
+                  <Pressable
+                    key={team}
                     style={[
-                      styles.dropdownModalOptionText,
-                      selectedTeam === team && styles.dropdownModalOptionTextSelected,
+                      styles.dropdownModalOption,
+                      selectedTeam === team && styles.dropdownModalOptionSelected,
                     ]}
+                    onPress={() => {
+                      setSelectedTeam(team);
+                      setIsTeamDropdownOpen(false);
+                    }}
                   >
-                    {team}
-                  </Text>
-                </Pressable>
-              ))}
+                    <Text
+                      style={[
+                        styles.dropdownModalOptionText,
+                        selectedTeam === team && styles.dropdownModalOptionTextSelected,
+                      ]}
+                    >
+                      {team}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
             </View>
-          </View>
-        </Pressable>
-      </Modal>
+          </Pressable>
+        </Modal>
+      ) : null}
 
-      {/* Report Generation Modal */}
       <Modal
         visible={showReportModal}
         transparent
@@ -346,19 +398,13 @@ export function TelaRelatorio({
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                Gerar Relatório - {currentAthlete}
-              </Text>
-              <Pressable
-                style={styles.modalCloseButton}
-                onPress={() => setShowReportModal(false)}
-              >
+              <Text style={styles.modalTitle}>Gerar Relatório - {currentAthlete}</Text>
+              <Pressable style={styles.modalCloseButton} onPress={() => setShowReportModal(false)}>
                 <Ionicons name="close" size={24} color="#7F7F7F" />
               </Pressable>
             </View>
 
             <View style={styles.modalBody}>
-              {/* Period Filters */}
               <View style={styles.modalSection}>
                 <Text style={styles.modalSectionTitle}>Período</Text>
                 <View style={styles.periodOptions}>
@@ -384,7 +430,6 @@ export function TelaRelatorio({
                 </View>
               </View>
 
-              {/* Format Selection */}
               <View style={styles.modalSection}>
                 <Text style={styles.modalSectionTitle}>Formato</Text>
                 <View style={styles.formatOptions}>
