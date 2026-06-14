@@ -42,28 +42,7 @@ npm install
 npm start
 ```
 
-## Banco de dados
-
-Por padrão o backend usa **SQLite** (`backend/hydra.db`). Para MySQL ou PostgreSQL, configure `DATABASE_URL` em `backend/.env`.
-
-
-### Usuários de demonstração (após o seed)
-
-| Perfil   | E-mail               | Senha     |
-|----------|----------------------|-----------|
-| Equipe   | maria@saocamilo.br   | team123   |
-| Atleta   | carlos@email.com     | atleta123 |
-| Atleta   | ana@email.com        | atleta123 |
-
-
-## Ferramentas de auditoria (backend)
-
-```cmd
-cd backend
-.venv\Scripts\python.exe auditoria.py testar      :: roda os testes
-.venv\Scripts\python.exe auditoria.py verificar   :: lista entradas do banco
-.venv\Scripts\python.exe auditoria.py datas       :: atualiza datas para hoje
-```
+Defina `EXPO_PUBLIC_API_BASE_URL` em `frontend/.env` se o dispositivo não alcançar `localhost` (use o IP da máquina na rede).
 
 ---
 
@@ -81,6 +60,14 @@ Na raiz do projeto há uma CLI `./hydra` que escolhe o script certo pra você:
 ```
 
 > No **Windows**, use os scripts equivalentes em `scripts/`: dê duplo clique em `scripts\setup.cmd` (primeira vez) e depois em `scripts\run.cmd`.
+
+### Usuários de demonstração (após o seed)
+
+| Perfil   | E-mail               | Senha     |
+|----------|----------------------|-----------|
+| Equipe   | maria@saocamilo.br   | team123   |
+| Atleta   | carlos@email.com     | atleta123 |
+| Atleta   | ana@email.com        | atleta123 |
 
 # 🐳 Docker e Deploy (HTTPS)
 
