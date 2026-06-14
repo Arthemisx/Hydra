@@ -1,5 +1,5 @@
 """
-Ferramentas de auditoria do backend Hydra.
+Ferramentas de auditoria do backend
 
 Uso:
     python auditoria.py testar     - roda a suite de testes (SQLite em memoria)
@@ -13,9 +13,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 
-# ══════════════════════════════════════════════════════════
 # COMANDO: verificar
-# ══════════════════════════════════════════════════════════
 def comando_verificar():
     """Mostra os dados das entradas diarias no banco."""
     from datetime import date
@@ -52,9 +50,8 @@ def comando_verificar():
             print(f"- Data: {e.entry_date}")
 
 
-# ══════════════════════════════════════════════════════════
 # COMANDO: datas
-# ══════════════════════════════════════════════════════════
+
 def comando_datas():
     """Atualiza entry_date de todas as entradas para a data de hoje."""
     from datetime import date
@@ -74,9 +71,8 @@ def comando_datas():
         print("Datas atualizadas com sucesso!")
 
 
-# ══════════════════════════════════════════════════════════
 # COMANDO: testar
-# ══════════════════════════════════════════════════════════
+
 def comando_testar():
     """Roda a suite completa de testes do backend (SQLite em memoria)."""
     os.environ["DATABASE_URL"] = "sqlite:///:memory:"
@@ -109,12 +105,12 @@ def comando_testar():
     check("Variacao % = 1.43%", r["mass_variation_pct"] == 1.43, f"got {r['mass_variation_pct']}")
     check("Balanco = -500 mL", r["hydration_balance_ml"] == -500.0, f"got {r['hydration_balance_ml']}")
     check("Recomendacao = 800 mL/h", r["recommended_intake_ml_h"] == 800.0, f"got {r['recommended_intake_ml_h']}")
-    check("Alerta = caution (>1%)", r["alert_level"] == "caution", f"got {r['alert_level']}")
+    check("Alerta = CUIDADO (>1%)", r["alert_level"] == "CUIDADO", f"got {r['alert_level']}")
 
     r2 = calculate_session(pre_mass_kg=65.0, post_mass_kg=63.0, fluid_intake_ml=200,
                            urine_volume_ml=100, duration_min=90)
     check("Cenario severo: perda = 2.1 kg", r2["adjusted_loss_kg"] == 2.1, f"got {r2['adjusted_loss_kg']}")
-    check("Cenario severo: alerta = danger", r2["alert_level"] == "danger", f"got {r2['alert_level']}")
+    check("Cenario severo: alerta = PERIGO", r2["alert_level"] == "PERIGO", f"got {r2['alert_level']}")
 
     r3 = calculate_session(pre_mass_kg=80.0, post_mass_kg=79.8, fluid_intake_ml=1000,
                            urine_volume_ml=200, duration_min=60)
@@ -220,7 +216,7 @@ def comando_testar():
     }, headers=headers_ath)
     check("PATCH post: status 200", resp.status_code == 200, f"got {resp.status_code}")
     result = resp.get_json()
-    check("Status = done", result.get("status") == "done")
+    check("Status = concluído", result.get("status") == "concluído")
     check("adjusted_loss_kg calculado", result.get("adjusted_loss_kg") is not None,
           f"got {result.get('adjusted_loss_kg')}")
     check("sweat_rate_lh calculado", result.get("sweat_rate_lh") is not None,
@@ -298,10 +294,7 @@ def comando_testar():
         print(f"\033[92mTODOS OS TESTES PASSARAM!\033[0m")
     print("=" * 50)
 
-
-# ══════════════════════════════════════════════════════════
 # CLI
-# ══════════════════════════════════════════════════════════
 if __name__ == "__main__":
     comandos = {
         "testar": comando_testar,

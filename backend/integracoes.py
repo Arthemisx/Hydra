@@ -138,9 +138,9 @@ Responda apenas com o texto da análise, sem formatação extra.
         parts.append(f"💧 Taxa de sudorese: {sweat_rate:.1f} L/h.")
     
     # Recomendações baseadas em clima
-    if temp > 28:
+    if temp and temp > 28:
         parts.append(f"🌡️ Temperatura elevada ({temp:.0f}°C). Aumente a ingestão hídrica em 20-30%.")
-    if humidity > 70:
+    if humidity and humidity > 70:
         parts.append(f"💦 Alta umidade ({humidity:.0f}%). A sudorese pode ser menos eficiente.")
     
     # RPE

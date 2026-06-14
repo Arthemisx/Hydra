@@ -13,6 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { CoachAthleteSummary } from "@/biblioteca/constants";
 import { useFeedback } from "@/componentes/ProvedorFeedback";
+import { fetchWithAuth } from "@/biblioteca/apiAuth";
 
 type Props = {
   athleteName: string;
@@ -137,7 +138,7 @@ export function TelaRelatorio({
     if (!periodObj) return;
 
     try {
-      const response = await fetch(`${apiBaseUrl}/api/reports/generate`, {
+      const response = await fetchWithAuth("/api/reports/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

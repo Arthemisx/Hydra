@@ -42,7 +42,7 @@ export async function sessionApiJson<T>(
 
   if (response.status === 401) {
     await logout();
-    throw new Error("Sessao expirada. Faca login novamente.");
+    throw new Error("Sessão expirada. Faça login novamente.");
   }
 
   if (!response.ok) {

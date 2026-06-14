@@ -31,6 +31,7 @@ import { ABOUT_PARAGRAPHS, HELP_PARAGRAPHS } from "@/biblioteca/infoContent";
 import { TelaInfo } from "@/componentes/TelaInfo";
 import { styles } from "@/estilos/index.styles";
 import { TelaRelatorio } from "@/componentes/TelaRelatorio";
+import { TelaEstatisticas } from "@/componentes/TelaEstatisticas";
 import { urineColors } from "@/biblioteca/theme";
 import { useFeedback } from "@/componentes/ProvedorFeedback";
 import { BannerStatus } from "@/componentes/BannerStatus";
@@ -67,7 +68,7 @@ export default function Index() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeScreen, setActiveScreen] = useState<
-    "home" | "athlete" | "coach" | "report" | "about" | "help" |
+    "home" | "athlete" | "coach" | "report" | "about" | "help" | "statistics" |
     "pre-session" | "during-session" | "post-session" | "result" |
     "coach-athlete-detail" | "coach-report" | "weather" | "coach-teams" | "coach-team-detail"
   >("home");
@@ -346,7 +347,7 @@ export default function Index() {
         const msg =
           (data && typeof data === "object" && "error" in data && (data as { error?: string }).error) ||
           extra ||
-          "Nao foi possivel carregar os atletas.";
+          "Não foi possivel carregar os atletas.";
         setCoachError(msg);
         showError(msg);
         return;
@@ -424,7 +425,7 @@ export default function Index() {
   };
 
   useEffect(() => {
-    if ((activeScreen === "home" || activeScreen === "report") && user?.role === "team") {
+    if ((activeScreen === "home" || activeScreen === "report") && (user?.role === "team" || user?.role === "nutritionist")) {
       loadCoachAthletes();
     }
   }, [activeScreen, loadCoachAthletes, user]);
@@ -581,7 +582,7 @@ export default function Index() {
 
   const handlePostSessionSubmit = async () => {
     if (!postMass) {
-      showError("Peso pos-sessao e obrigatorio.");
+      showError("Peso pós-sessão e obrigatorio.");
       return;
     }
     const giError = validateGiPhase("post", giSurvey);
@@ -635,7 +636,7 @@ export default function Index() {
   }
 
   return (
-    <SafeAreaView style={[styles.safeArea, user?.role === "team" && { backgroundColor: "#ffffff" }]}>
+    <SafeAreaView style={[styles.safeArea, (user?.role === "team" || user?.role === "nutritionist") && { backgroundColor: "#ffffff" }]}>
       {isMenuOpen ? (
         <View style={styles.sidebarOverlay}>
           <View style={styles.sidebar}>
@@ -643,7 +644,7 @@ export default function Index() {
               <Text style={styles.sidebarBrandText}>CENTRO UNIVERSITARIO SAO CAMILO</Text>
               {user && (
                 <Text style={styles.sidebarUserText}>
-                  {user.name} ({user.role === "athlete" ? "Atleta" : "Treinador"})
+                  {user.name} ({user.role === "athlete" ? "Atleta" : user.role === "nutritionist" ? "Nutricionista" : "Treinador"})
                 </Text>
               )}
             </View>
@@ -679,6 +680,17 @@ export default function Index() {
             >
               <Text style={styles.sidebarItemText}>Ajuda</Text>
             </Pressable>
+            {user?.role === "athlete" && (
+              <Pressable
+                style={styles.sidebarItem}
+                onPress={() => {
+                  setActiveScreen("statistics");
+                  setIsMenuOpen(false);
+                }}
+              >
+                <Text style={styles.sidebarItemText}>Estatísticas</Text>
+              </Pressable>
+            )}
             <Pressable style={styles.sidebarItem} onPress={handleLogout}>
               <Text style={styles.sidebarItemText}>Sair</Text>
             </Pressable>
@@ -702,7 +714,7 @@ export default function Index() {
         <TelaRelatorio 
           athleteName={user?.name || form.athleteName} 
           apiBaseUrl={apiBaseUrl}
-          userRole={user?.role === "team" ? "team" : "athlete"}
+          userRole={user?.role === "team" || user?.role === "nutritionist" ? "team" : "athlete"}
           athletes={coachAthletes}
           onSelectAthlete={(athlete) => updateField("athleteName", athlete.name)}
         />
@@ -710,6 +722,8 @@ export default function Index() {
         <TelaInfo title="Sobre" paragraphs={ABOUT_PARAGRAPHS} />
       ) : activeScreen === "help" ? (
         <TelaInfo title="Ajuda" paragraphs={HELP_PARAGRAPHS} />
+      ) : activeScreen === "statistics" ? (
+        <TelaEstatisticas />
       ) : activeScreen === "athlete" ? (
         <ScrollView contentContainerStyle={styles.container}>
           <View style={styles.contentCard}>
@@ -736,7 +750,7 @@ export default function Index() {
                     style={[styles.input, formErrors.athleteName && styles.inputError]}
                     value={form.athleteName}
                     onChangeText={(value) => updateField("athleteName", value)}
-                    editable={user?.role === "team"}
+                    editable={user?.role === "team" || user?.role === "nutritionist"}
                   />
                   {formErrors.athleteName ? <Text style={styles.fieldError}>{formErrors.athleteName}</Text> : null}
                 </View>
@@ -772,7 +786,7 @@ export default function Index() {
 
                 <View style={styles.fieldCard}>
                   <Text style={styles.cardTitle}>Vestimentas</Text>
-                  <Text style={styles.label}>Que roupas voce usava durante a pesagem?</Text>
+                  <Text style={styles.label}>Que roupas você usava durante a pesagem?</Text>
                   <TextInput style={styles.input} value={form.clothing} onChangeText={(value) => updateField("clothing", value)} />
                 </View>
               </View>
@@ -803,7 +817,7 @@ export default function Index() {
               <View style={styles.formColumn}>
                 <View style={styles.fieldCard}>
                   <Text style={styles.cardTitle}>Sintomas</Text>
-                  <Text style={styles.label}>Sentiu algum sintoma de desidratacao durante o dia?</Text>
+                  <Text style={styles.label}>Sentiu algum sintoma de desidratação durante o dia?</Text>
                   <View style={styles.optionsWrap}>
                     {SYMPTOMS.map((symptom) => (
                       <Pressable
@@ -845,122 +859,427 @@ export default function Index() {
           </View>
         </ScrollView>
       ) : activeScreen === "coach-athlete-detail" ? (
-        <ScrollView contentContainerStyle={styles.coachContainer}>
-          <View style={styles.coachTopBar}>
-            <Pressable style={[styles.button, { backgroundColor: "#e8e8e8" }]} onPress={() => setActiveScreen("coach-team-detail")}>
-              <Text style={[styles.buttonText, { color: "#1f1f1f" }]}>Voltar</Text>
+        <ScrollView contentContainerStyle={{ backgroundColor: "#F8F9FB", padding: 24 }}>
+          {/* Header */}
+          <View style={{ marginBottom: 32 }}>
+            <Pressable 
+              style={{ 
+                flexDirection: 'row', 
+                alignItems: 'center', 
+                gap: 8, 
+                marginBottom: 24,
+                alignSelf: 'flex-start'
+              }} 
+              onPress={() => setActiveScreen("home")}
+            >
+              <Ionicons name="arrow-back" size={24} color="#1f1f1f" />
+              <Text style={{ fontSize: 16, fontWeight: '600', color: '#1f1f1f' }}>Voltar</Text>
             </Pressable>
+
+            <View style={{ marginBottom: 8 }}>
+              <Text style={{ fontSize: 32, fontWeight: '700', color: '#1f1f1f' }}>
+                {selectedAthlete?.name}
+              </Text>
+            </View>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+              <Ionicons name="fitness" size={20} color="#d04044" />
+              <Text style={{ fontSize: 18, fontWeight: '600', color: '#4f4f4f' }}>
+                Sessões Registradas
+              </Text>
+            </View>
           </View>
 
-          <Text style={styles.coachTitle}>{selectedAthlete?.name}</Text>
-          <Text style={styles.coachSectionTitle}>Sessões Registradas</Text>
-
-          {coachLoading ? <BannerStatus message="Carregando sessoes..." variant="loading" /> : null}
-          {coachError ? <BannerStatus message={coachError} variant="error" /> : null}
-          {!coachLoading && !coachError && athleteSessions.length === 0 ? (
-            <Text style={styles.coachEmpty}>Nenhuma sessão registrada para este atleta.</Text>
-          ) : null}
-
-          <View style={{ flexDirection: "column", gap: 10 }}>
-            {athleteSessions.map((session: Record<string, unknown>, index) => {
-              const formatGiData = (phase: string, data: any) => {
-                if (!data || !data.context) return null;
-                
-                const phaseLabel = phase === "pre" ? "Pré-sessão" : phase === "during" ? "Durante" : "Pós-sessão";
-                const symptoms: string[] = [];
-                
-                if (data.context === "treino" || data.context === "ambos") {
-                  const field = phase === "pre" ? "before_training" : phase === "during" ? "during_training" : "after_training";
-                  if (data[field] === "sim") {
-                    symptoms.push(`✅ Treino: Sim`);
-                    const severityField = phase === "pre" ? "severity_before_training" : phase === "during" ? "severity_during_training" : "severity_after_training";
-                    if (data[severityField]) {
-                      const avgSeverity = Object.values(data[severityField]).reduce((a: number, b: number) => a + b, 0) / Object.keys(data[severityField]).length;
-                      symptoms.push(`Gravidade média: ${avgSeverity.toFixed(1)}/10`);
-                    }
-                  } else if (data[field] === "nao") {
-                    symptoms.push(`❌ Treino: Não`);
-                  }
-                }
-                
-                if (data.context === "competicao" || data.context === "ambos") {
-                  const field = phase === "pre" ? "before_competition" : phase === "during" ? "during_competition" : "after_competition";
-                  if (data[field] === "sim") {
-                    symptoms.push(`✅ Competição: Sim`);
-                    const severityField = phase === "pre" ? "severity_before_competition" : phase === "during" ? "severity_during_competition" : "severity_after_competition";
-                    if (data[severityField]) {
-                      const avgSeverity = Object.values(data[severityField]).reduce((a: number, b: number) => a + b, 0) / Object.keys(data[severityField]).length;
-                      symptoms.push(`Gravidade média: ${avgSeverity.toFixed(1)}/10`);
-                    }
-                  } else if (data[field] === "nao") {
-                    symptoms.push(`❌ Competição: Não`);
-                  }
-                }
-                
-                if (symptoms.length === 0) return null;
-                
-                return (
-                  <Text key={phase} style={styles.coachCardText}>
-                    {phaseLabel}: {symptoms.join(", ")}
+          {coachLoading ? (
+            <View style={{ padding: 48, alignItems: 'center' }}>
+              <ActivityIndicator size="large" color="#d04044" />
+              <Text style={{ marginTop: 16, color: '#6b7280' }}>Carregando sessões...</Text>
+            </View>
+          ) : coachError ? (
+            <View style={{ 
+              backgroundColor: '#fef2f2', 
+              borderRadius: 16, 
+              padding: 24,
+              borderWidth: 1,
+              borderColor: '#fecaca'
+            }}>
+              <Text style={{ color: '#dc2626', fontWeight: '600' }}>{coachError}</Text>
+            </View>
+          ) : athleteSessions.length === 0 ? (
+            <View style={{ 
+              backgroundColor: '#fff', 
+              borderRadius: 16, 
+              padding: 48,
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: '#e5e7eb'
+            }}>
+              <Ionicons name="document-outline" size={48} color="#d1d5db" />
+              <Text style={{ marginTop: 16, color: '#6b7280', fontSize: 16 }}>
+                Nenhuma sessão registrada para este atleta.
+              </Text>
+            </View>
+          ) : (
+            <>
+              {/* Dashboard Superior */}
+              <View style={{ 
+                flexDirection: 'row', 
+                gap: 16, 
+                marginBottom: 32,
+                flexWrap: 'wrap'
+              }}>
+                <View style={{ 
+                  flex: 1, 
+                  minWidth: 200,
+                  backgroundColor: '#fff', 
+                  borderRadius: 16, 
+                  padding: 20,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 8,
+                  elevation: 2
+                }}>
+                  <Text style={{ fontSize: 14, color: '#6b7280', marginBottom: 8 }}>Total de Sessões</Text>
+                  <Text style={{ fontSize: 32, fontWeight: '700', color: '#1f1f1f' }}>
+                    {athleteSessions.length}
                   </Text>
-                );
-              };
-              
-              return (
-                <View key={String(session.id ?? index)} style={styles.coachCard}>
-                  <Text style={styles.coachCardHeader}>
-                    Sessão #{String(session.id ?? index + 1)} — {String(session.status ?? "—")}
-                  </Text>
-                  <Text style={styles.coachCardMuted}>
-                    {session.created_at
-                      ? new Date(String(session.created_at)).toLocaleString("pt-BR")
-                      : "—"}
-                  </Text>
-                  <Text style={styles.coachCardText}>
-                    Peso pré: {session.pre_mass_kg != null ? `${session.pre_mass_kg} kg` : "—"}
-                  </Text>
-                  <Text style={styles.coachCardText}>
-                    Peso pós: {session.post_mass_kg != null ? `${session.post_mass_kg} kg` : "—"}
-                  </Text>
-                  <Text style={styles.coachCardText}>
-                    Fluidos: {session.fluid_intake_ml != null ? `${session.fluid_intake_ml} mL` : "—"}
-                  </Text>
-                  <Text style={styles.coachCardText}>
-                    Duração: {session.actual_duration_min != null ? `${session.actual_duration_min} min` : "—"}
-                  </Text>
-                  {session.sweat_rate_lh != null ? (
-                    <Text style={styles.coachCardText}>Taxa de suor: {String(session.sweat_rate_lh)} L/h</Text>
-                  ) : null}
-                  {session.alert_level ? (
-                    <Text style={[styles.coachCardText, { color: "#c41e3a", fontWeight: "700" }]}>
-                      Alerta: {String(session.alert_level)}
-                    </Text>
-                  ) : null}
-
-                  <View style={{ marginTop: 8 }}>
-                    <Text style={[styles.coachCardText, { fontWeight: "700" }]}>Esforço Percebido:</Text>
-                    {session.perceived_intensity != null ? (
-                      <Text style={styles.coachCardText}>• Pré-sessão esperado: {session.perceived_intensity}/10</Text>
-                    ) : null}
-                    {session.perceived_intensity_post != null ? (
-                      <Text style={styles.coachCardText}>• Pós-sessão real: {session.perceived_intensity_post}/10</Text>
-                    ) : null}
-                  </View>
-                  
-                  {session.gi_responses ? (
-                    <>
-                      <Text style={[styles.coachCardText, { fontWeight: "700", marginTop: 8 }]}>
-                        Sintomas GI:
-                      </Text>
-                      {formatGiData("pre", (session.gi_responses as any).pre)}
-                      {formatGiData("during", (session.gi_responses as any).during)}
-                      {formatGiData("post", (session.gi_responses as any).post)}
-                    </>
-                  ) : null}
                 </View>
-              );
-            })}
-          </View>
+
+                <View style={{ 
+                  flex: 1, 
+                  minWidth: 200,
+                  backgroundColor: '#fff', 
+                  borderRadius: 16, 
+                  padding: 20,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 8,
+                  elevation: 2
+                }}>
+                  <Text style={{ fontSize: 14, color: '#6b7280', marginBottom: 8 }}>Média de Fluidos</Text>
+                  <Text style={{ fontSize: 32, fontWeight: '700', color: '#1f1f1f' }}>
+                    {athleteSessions.length > 0 
+                      ? Math.round(athleteSessions.reduce((sum: number, s: any) => sum + (s.fluid_intake_ml || 0), 0) / athleteSessions.length)
+                      : 0} mL
+                  </Text>
+                </View>
+
+                <View style={{ 
+                  flex: 1, 
+                  minWidth: 200,
+                  backgroundColor: '#fff', 
+                  borderRadius: 16, 
+                  padding: 20,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 8,
+                  elevation: 2
+                }}>
+                  <Text style={{ fontSize: 14, color: '#6b7280', marginBottom: 8 }}>Média Taxa de Suor</Text>
+                  <Text style={{ fontSize: 32, fontWeight: '700', color: '#1f1f1f' }}>
+                    {athleteSessions.length > 0 
+                      ? (athleteSessions.reduce((sum: number, s: any) => sum + (s.sweat_rate_lh || 0), 0) / athleteSessions.length).toFixed(2)
+                      : 0} L/h
+                  </Text>
+                </View>
+
+                <View style={{ 
+                  flex: 1, 
+                  minWidth: 200,
+                  backgroundColor: '#fff', 
+                  borderRadius: 16, 
+                  padding: 20,
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.05,
+                  shadowRadius: 8,
+                  elevation: 2
+                }}>
+                  <Text style={{ fontSize: 14, color: '#6b7280', marginBottom: 8 }}>Alertas Críticos</Text>
+                  <Text style={{ fontSize: 32, fontWeight: '700', color: '#dc2626' }}>
+                    {athleteSessions.filter((s: any) => s.alert_level === 'danger').length}
+                  </Text>
+                </View>
+              </View>
+
+              {/* Lista de Sessões */}
+              <View style={{ flexDirection: "column", gap: 16 }}>
+                {athleteSessions.map((session: Record<string, unknown>, index) => {
+                  const formatGiData = (phase: string, data: any) => {
+                    if (!data || !data.context) return null;
+                    
+                    const phaseLabel = phase === "pre" ? "Pré-sessão" : phase === "during" ? "Durante" : "Pós-sessão";
+                    const symptoms: string[] = [];
+                    
+                    if (data.context === "treino" || data.context === "ambos") {
+                      const field = phase === "pre" ? "before_training" : phase === "during" ? "during_training" : "after_training";
+                      if (data[field] === "sim") {
+                        symptoms.push(`✅ Treino: Sim`);
+                        const severityField = phase === "pre" ? "severity_before_training" : phase === "during" ? "severity_during_training" : "severity_after_training";
+                        if (data[severityField]) {
+                          const avgSeverity = Object.values(data[severityField]).reduce((a: number, b: number) => a + b, 0) / Object.keys(data[severityField]).length;
+                          symptoms.push(`Gravidade média: ${avgSeverity.toFixed(1)}/10`);
+                        }
+                      } else if (data[field] === "nao") {
+                        symptoms.push(`❌ Treino: Não`);
+                      }
+                    }
+                    
+                    if (data.context === "competicao" || data.context === "ambos") {
+                      const field = phase === "pre" ? "before_competition" : phase === "during" ? "during_competition" : "after_competition";
+                      if (data[field] === "sim") {
+                        symptoms.push(`✅ Competição: Sim`);
+                        const severityField = phase === "pre" ? "severity_before_competition" : phase === "during" ? "severity_during_competition" : "severity_after_competition";
+                        if (data[severityField]) {
+                          const avgSeverity = Object.values(data[severityField]).reduce((a: number, b: number) => a + b, 0) / Object.keys(data[severityField]).length;
+                          symptoms.push(`Gravidade média: ${avgSeverity.toFixed(1)}/10`);
+                        }
+                      } else if (data[field] === "nao") {
+                        symptoms.push(`❌ Competição: Não`);
+                      }
+                    }
+                    
+                    if (symptoms.length === 0) return null;
+                    
+                    return (
+                      <Text key={phase} style={{ fontSize: 14, color: '#4f4f4f', marginTop: 4 }}>
+                        {phaseLabel}: {symptoms.join(", ")}
+                      </Text>
+                    );
+                  };
+
+                  const getStatusBadge = (status: string) => {
+                    if (status === 'done') {
+                      return { text: 'Concluído', color: '#10b981', bgColor: '#d1fae5' };
+                    } else if (status === 'caution') {
+                      return { text: 'Atenção', color: '#f59e0b', bgColor: '#fef3c7' };
+                    } else if (status === 'danger') {
+                      return { text: 'Crítico', color: '#dc2626', bgColor: '#fef2f2' };
+                    }
+                    return { text: status, color: '#6b7280', bgColor: '#f3f4f6' };
+                  };
+
+                  const getAlertBadge = (alert: string) => {
+                    if (alert === 'normal') {
+                      return { text: 'Normal', color: '#10b981', bgColor: '#d1fae5' };
+                    } else if (alert === 'caution') {
+                      return { text: 'Atenção', color: '#f59e0b', bgColor: '#fef3c7' };
+                    } else if (alert === 'danger') {
+                      return { text: 'Alto Risco', color: '#dc2626', bgColor: '#fef2f2' };
+                    } else if (alert === 'critical') {
+                      return { text: 'Crítico', color: '#7f1d1d', bgColor: '#fee2e2' };
+                    }
+                    return { text: alert, color: '#6b7280', bgColor: '#f3f4f6' };
+                  };
+
+                  const statusBadge = getStatusBadge(String(session.status ?? ''));
+                  const alertBadge = getAlertBadge(String(session.alert_level ?? ''));
+
+                  return (
+                    <View key={String(session.id ?? index)} style={{ 
+                      backgroundColor: '#fff', 
+                      borderRadius: 16, 
+                      overflow: 'hidden',
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.05,
+                      shadowRadius: 8,
+                      elevation: 2
+                    }}>
+                      {/* Barra lateral vermelha */}
+                      <View style={{ 
+                        position: 'absolute',
+                        left: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: 4,
+                        backgroundColor: '#d04044'
+                      }} />
+
+                      {/* Header do Card */}
+                      <View style={{ 
+                        flexDirection: 'row', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        padding: 20,
+                        borderBottomWidth: 1,
+                        borderBottomColor: '#f3f4f6',
+                        paddingLeft: 24
+                      }}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                          <Text style={{ fontSize: 20, fontWeight: '700', color: '#1f1f1f' }}>
+                            #{String(session.id ?? index + 1)}
+                          </Text>
+                          <View style={{ 
+                            paddingHorizontal: 12, 
+                            paddingVertical: 6, 
+                            borderRadius: 20,
+                            backgroundColor: statusBadge.bgColor
+                          }}>
+                            <Text style={{ fontSize: 12, fontWeight: '600', color: statusBadge.color }}>
+                              {statusBadge.text}
+                            </Text>
+                          </View>
+                        </View>
+
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                          <Ionicons name="calendar-outline" size={16} color="#9ca3af" />
+                          <Text style={{ fontSize: 14, color: '#6b7280' }}>
+                            {session.created_at
+                              ? new Date(String(session.created_at)).toLocaleString("pt-BR")
+                              : "—"}
+                          </Text>
+                        </View>
+                      </View>
+
+                      {/* Métricas */}
+                      <View style={{ padding: 20, paddingLeft: 24 }}>
+                        <View style={{ flexDirection: 'row', gap: 24, marginBottom: 20, flexWrap: 'wrap' }}>
+                          <View style={{ flex: 1, minWidth: 120 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                              <Ionicons name="scale-outline" size={16} color="#6b7280" />
+                              <Text style={{ fontSize: 12, color: '#6b7280', fontWeight: '500' }}>Peso Pré</Text>
+                            </View>
+                            <Text style={{ fontSize: 18, fontWeight: '600', color: '#1f1f1f' }}>
+                              {session.pre_mass_kg != null ? `${session.pre_mass_kg} kg` : "—"}
+                            </Text>
+                          </View>
+
+                          <View style={{ flex: 1, minWidth: 120 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                              <Ionicons name="scale-outline" size={16} color="#6b7280" />
+                              <Text style={{ fontSize: 12, color: '#6b7280', fontWeight: '500' }}>Peso Pós</Text>
+                            </View>
+                            <Text style={{ fontSize: 18, fontWeight: '600', color: '#1f1f1f' }}>
+                              {session.post_mass_kg != null ? `${session.post_mass_kg} kg` : "—"}
+                            </Text>
+                          </View>
+
+                          <View style={{ flex: 1, minWidth: 120 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                              <Ionicons name="water-outline" size={16} color="#6b7280" />
+                              <Text style={{ fontSize: 12, color: '#6b7280', fontWeight: '500' }}>Fluidos</Text>
+                            </View>
+                            <Text style={{ fontSize: 18, fontWeight: '600', color: '#1f1f1f' }}>
+                              {session.fluid_intake_ml != null ? `${session.fluid_intake_ml} mL` : "—"}
+                            </Text>
+                          </View>
+
+                          <View style={{ flex: 1, minWidth: 120 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                              <Ionicons name="time-outline" size={16} color="#6b7280" />
+                              <Text style={{ fontSize: 12, color: '#6b7280', fontWeight: '500' }}>Duração</Text>
+                            </View>
+                            <Text style={{ fontSize: 18, fontWeight: '600', color: '#1f1f1f' }}>
+                              {session.actual_duration_min != null ? `${session.actual_duration_min} min` : "—"}
+                            </Text>
+                          </View>
+
+                          <View style={{ flex: 1, minWidth: 120 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                              <Ionicons name="sunny-outline" size={16} color="#6b7280" />
+                              <Text style={{ fontSize: 12, color: '#6b7280', fontWeight: '500' }}>Taxa de Suor</Text>
+                            </View>
+                            <Text style={{ fontSize: 18, fontWeight: '600', color: '#1f1f1f' }}>
+                              {session.sweat_rate_lh != null ? `${session.sweat_rate_lh} L/h` : "—"}
+                            </Text>
+                          </View>
+                        </View>
+
+                        {/* Resumo */}
+                        <View style={{ 
+                          backgroundColor: '#f9fafb', 
+                          borderRadius: 12, 
+                          padding: 16,
+                          marginBottom: 16
+                        }}>
+                          <Text style={{ fontSize: 14, fontWeight: '600', color: '#1f1f1f', marginBottom: 12 }}>
+                            Resumo da Sessão
+                          </Text>
+
+                          <View style={{ flexDirection: 'row', gap: 24, marginBottom: 12, flexWrap: 'wrap' }}>
+                            <View>
+                              <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 4 }}>Esforço Pré</Text>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+                                  <View 
+                                    key={i} 
+                                    style={{ 
+                                      width: 8, 
+                                      height: 8, 
+                                      borderRadius: 4,
+                                      backgroundColor: i <= (Number(session.perceived_intensity) || 0) ? '#d04044' : '#e5e7eb'
+                                    }} 
+                                  />
+                                ))}
+                                <Text style={{ fontSize: 14, fontWeight: '600', color: '#1f1f1f', marginLeft: 8 }}>
+                                  {Number(session.perceived_intensity) || 0}/10
+                                </Text>
+                              </View>
+                            </View>
+
+                            <View>
+                              <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 4 }}>Esforço Pós</Text>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
+                                  <View 
+                                    key={i} 
+                                    style={{ 
+                                      width: 8, 
+                                      height: 8, 
+                                      borderRadius: 4,
+                                      backgroundColor: i <= (Number(session.perceived_intensity_post) || 0) ? '#d04044' : '#e5e7eb'
+                                    }} 
+                                  />
+                                ))}
+                                <Text style={{ fontSize: 14, fontWeight: '600', color: '#1f1f1f', marginLeft: 8 }}>
+                                  {Number(session.perceived_intensity_post) || 0}/10
+                                </Text>
+                              </View>
+                            </View>
+                          </View>
+
+                          {session.alert_level ? (
+                            <View style={{ 
+                              flexDirection: 'row', 
+                              alignItems: 'center', 
+                              gap: 8,
+                              marginTop: 8
+                            }}>
+                              <View style={{ 
+                                paddingHorizontal: 12, 
+                                paddingVertical: 6, 
+                                borderRadius: 20,
+                                backgroundColor: alertBadge.bgColor
+                              }}>
+                                <Text style={{ fontSize: 12, fontWeight: '600', color: alertBadge.color }}>
+                                  {alertBadge.text}
+                                </Text>
+                              </View>
+                            </View>
+                          ) : null}
+                        </View>
+
+                        {session.gi_responses ? (
+                          <View>
+                            <Text style={{ fontSize: 14, fontWeight: '600', color: '#1f1f1f', marginBottom: 8 }}>
+                              Sintomas GI
+                            </Text>
+                            {formatGiData("pre", (session.gi_responses as any).pre)}
+                            {formatGiData("during", (session.gi_responses as any).during)}
+                            {formatGiData("post", (session.gi_responses as any).post)}
+                          </View>
+                        ) : null}
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            </>
+          )}
         </ScrollView>
       ) : activeScreen === "pre-session" ? (
         <ScrollView contentContainerStyle={{
@@ -1198,8 +1517,7 @@ export default function Index() {
                         <Ionicons name="checkmark" size={16} color="#fff" />
                       </View>
                     )}
-                    <Text style={{ fontSize: 13, fontWeight: '700', color: urineColor === c.value ? '#fff' : '#1f1f1f', marginTop: 'auto' }}>{c.value}</Text>
-                    <Text style={{ fontSize: 11, color: urineColor === c.value ? '#fff' : '#4b5563', textAlign: 'center', marginTop: 4 }}>{c.label}</Text>
+                    <Text style={{ fontSize: 16, fontWeight: '700', color: urineColor === c.value ? '#fff' : '#1f1f1f' }}>{c.value}</Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1714,7 +2032,16 @@ export default function Index() {
                   keyboardType="number-pad"
                   placeholder="0-10"
                   value={fatigue}
-                  onChangeText={setFatigue}
+                  onChangeText={(text) => {
+                    const num = parseInt(text);
+                    if (isNaN(num) || num < 0) {
+                      setFatigue("0");
+                    } else if (num > 10) {
+                      setFatigue("10");
+                    } else {
+                      setFatigue(text);
+                    }
+                  }}
                   underlineColorAndroid="transparent"
                 />
                 <Text style={{ fontSize: 14, color: '#9ca3af', fontWeight: '500' }}>/10</Text>
@@ -1911,7 +2238,7 @@ export default function Index() {
           </View>
         </ScrollView>
       ) : activeScreen === "result" && sessionResult ? (
-        <ScrollView contentContainerStyle={styles.container}>
+        <ScrollView contentContainerStyle={styles.container} style={{ backgroundColor: "#e5e5e5" }}>
           <View style={styles.contentCard}>
             <View style={styles.topBar}>
               <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
@@ -1964,26 +2291,89 @@ export default function Index() {
               ))}
             </View>
 
-            <View style={styles.fieldCard}>
-              <Text style={styles.cardTitle}>Dados Coletados</Text>
-              <Text style={{ fontSize: 14, color: "#1f1f1f", marginBottom: 4 }}>Peso pré: {sessionResult.pre_mass_kg} kg</Text>
-              <Text style={{ fontSize: 14, color: "#1f1f1f", marginBottom: 4 }}>Peso pós: {sessionResult.post_mass_kg} kg</Text>
-              
-              {sessionResult.perceived_intensity != null && (
-                <Text style={{ fontSize: 14, color: "#1f1f1f", marginBottom: 4 }}>
-                  Esforço esperado (pré): {sessionResult.perceived_intensity}/10
-                </Text>
-              )}
-              {sessionResult.perceived_intensity_post != null && (
-                <Text style={{ fontSize: 14, color: "#1f1f1f", marginBottom: 4 }}>
-                  Esforço real (pós): {sessionResult.perceived_intensity_post}/10
-                </Text>
-              )}
-              
+            <View style={{
+              backgroundColor: "#fff",
+              borderRadius: 12,
+              padding: 20,
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.08,
+              shadowRadius: 8,
+              elevation: 4,
+              marginTop: 16,
+            }}>
+              <Text style={{
+                fontSize: 18,
+                fontWeight: "700",
+                color: "#1f1f1f",
+                marginBottom: 12,
+                flexDirection: "row",
+                alignItems: "center",
+              }}>
+                <Ionicons name="clipboard-outline" size={20} color="#d04044" style={{ marginRight: 8 }} />
+                Dados Coletados
+              </Text>
+
+              <View style={{ flexDirection: 'row', gap: 24, marginBottom: 16, flexWrap: 'wrap' }}>
+                <View style={{ flex: 1, minWidth: 120 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <Ionicons name="scale-outline" size={16} color="#6b7280" />
+                    <Text style={{ fontSize: 12, color: '#6b7280', fontWeight: '500' }}>Peso Pré</Text>
+                  </View>
+                  <Text style={{ fontSize: 18, fontWeight: '600', color: '#1f1f1f' }}>
+                    {sessionResult.pre_mass_kg} kg
+                  </Text>
+                </View>
+
+                <View style={{ flex: 1, minWidth: 120 }}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                    <Ionicons name="scale-outline" size={16} color="#6b7280" />
+                    <Text style={{ fontSize: 12, color: '#6b7280', fontWeight: '500' }}>Peso Pós</Text>
+                  </View>
+                  <Text style={{ fontSize: 18, fontWeight: '600', color: '#1f1f1f' }}>
+                    {sessionResult.post_mass_kg} kg
+                  </Text>
+                </View>
+
+                {sessionResult.perceived_intensity != null && (
+                  <View style={{ flex: 1, minWidth: 120 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <Ionicons name="fitness-outline" size={16} color="#6b7280" />
+                      <Text style={{ fontSize: 12, color: '#6b7280', fontWeight: '500' }}>Esforço Pré</Text>
+                    </View>
+                    <Text style={{ fontSize: 18, fontWeight: '600', color: '#1f1f1f' }}>
+                      {sessionResult.perceived_intensity}/10
+                    </Text>
+                  </View>
+                )}
+
+                {sessionResult.perceived_intensity_post != null && (
+                  <View style={{ flex: 1, minWidth: 120 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <Ionicons name="fitness-outline" size={16} color="#6b7280" />
+                      <Text style={{ fontSize: 12, color: '#6b7280', fontWeight: '500' }}>Esforço Pós</Text>
+                    </View>
+                    <Text style={{ fontSize: 18, fontWeight: '600', color: '#1f1f1f' }}>
+                      {sessionResult.perceived_intensity_post}/10
+                    </Text>
+                  </View>
+                )}
+              </View>
+
               {sessionResult.soaked_clothing && (
-                <Text style={{ fontSize: 14, color: "#856404", marginBottom: 4 }}>
-                  ⚠ Roupas encharcadas registradas
-                </Text>
+                <View style={{
+                  backgroundColor: '#fff7ed',
+                  borderRadius: 8,
+                  padding: 12,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
+                }}>
+                  <Ionicons name="warning-outline" size={16} color="#ea580c" />
+                  <Text style={{ fontSize: 14, color: '#ea580c', fontWeight: '500' }}>
+                    Roupas encharcadas registradas
+                  </Text>
+                </View>
               )}
             </View>
 
@@ -2134,7 +2524,7 @@ export default function Index() {
             </View>
           </View>
         </ScrollView>
-      ) : user?.role === "team" ? (
+      ) : user?.role === "team" || user?.role === "nutritionist" ? (
         activeScreen === "coach-teams" || activeScreen === "home" ? (
           <ScrollView contentContainerStyle={styles.coachContainer}>
             <View style={styles.coachTopBar}>
@@ -2310,42 +2700,46 @@ export default function Index() {
                 </Text>
               </View>
               <View style={{ flexDirection: 'row', gap: 12 }}>
-                <Pressable
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 8,
-                    backgroundColor: '#fff',
-                    borderWidth: 2,
-                    borderColor: '#d04044',
-                    borderRadius: 8,
-                    paddingVertical: 10,
-                    paddingHorizontal: 16,
-                  }}
-                  onPress={() => setShowAddAthleteModal(true)}
-                >
-                  <Ionicons name="add" size={18} color="#d04044" />
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#d04044' }}>
-                    Adicionar Atleta
-                  </Text>
-                </Pressable>
-                <Pressable
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 8,
-                    backgroundColor: '#d04044',
-                    borderRadius: 8,
-                    paddingVertical: 10,
-                    paddingHorizontal: 16,
-                  }}
-                  onPress={() => setShowDeleteAthleteModal(true)}
-                >
-                  <Ionicons name="trash-outline" size={18} color="#fff" />
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' }}>
-                    Excluir Atleta
-                  </Text>
-                </Pressable>
+                {user?.role === "team" && (
+                  <Pressable
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 8,
+                      backgroundColor: '#fff',
+                      borderWidth: 2,
+                      borderColor: '#d04044',
+                      borderRadius: 8,
+                      paddingVertical: 10,
+                      paddingHorizontal: 16,
+                    }}
+                    onPress={() => setShowAddAthleteModal(true)}
+                  >
+                    <Ionicons name="add" size={18} color="#d04044" />
+                    <Text style={{ fontSize: 14, fontWeight: '600', color: '#d04044' }}>
+                      Adicionar Atleta
+                    </Text>
+                  </Pressable>
+                )}
+                {user?.role === "team" && (
+                  <Pressable
+                    style={{
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 8,
+                      backgroundColor: '#d04044',
+                      borderRadius: 8,
+                      paddingVertical: 10,
+                      paddingHorizontal: 16,
+                    }}
+                    onPress={() => setShowDeleteAthleteModal(true)}
+                  >
+                    <Ionicons name="trash-outline" size={18} color="#fff" />
+                    <Text style={{ fontSize: 14, fontWeight: '600', color: '#fff' }}>
+                      Excluir Atleta
+                    </Text>
+                  </Pressable>
+                )}
               </View>
             </View>
 
@@ -2513,28 +2907,30 @@ export default function Index() {
                         Detalhes
                       </Text>
                     </Pressable>
-                    <Pressable
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 6,
-                        backgroundColor: '#fff5f5',
-                        borderWidth: 1,
-                        borderColor: '#d04044',
-                        borderRadius: 8,
-                        paddingVertical: 6,
-                        paddingHorizontal: 10,
-                      }}
-                      onPress={() => {
-                        setSelectedAthleteForDelete(athlete.name);
-                        setShowDeleteAthleteModal(true);
-                      }}
-                    >
-                      <Ionicons name="trash-outline" size={16} color="#d04044" />
-                      <Text style={{ fontSize: 12, fontWeight: '600', color: '#d04044' }}>
-                        Excluir
-                      </Text>
-                    </Pressable>
+                    {user?.role === "team" && (
+                      <Pressable
+                        style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 6,
+                          backgroundColor: '#fff5f5',
+                          borderWidth: 1,
+                          borderColor: '#d04044',
+                          borderRadius: 8,
+                          paddingVertical: 6,
+                          paddingHorizontal: 10,
+                        }}
+                        onPress={() => {
+                          setSelectedAthleteForDelete(athlete.name);
+                          setShowDeleteAthleteModal(true);
+                        }}
+                      >
+                        <Ionicons name="trash-outline" size={16} color="#d04044" />
+                        <Text style={{ fontSize: 12, fontWeight: '600', color: '#d04044' }}>
+                          Excluir
+                        </Text>
+                      </Pressable>
+                    )}
                   </View>
                 </View>
               ))}

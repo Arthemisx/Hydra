@@ -9,12 +9,11 @@ auth_bp = Blueprint("auth", __name__, url_prefix="/api/auth")
 
 
 def encode_token(user_id, role):
-    token = jwt.encode(
+    return jwt.encode(
         {"user_id": user_id, "role": role},
         Config.JWT_SECRET,
         algorithm="HS256",
     )
-    return token if isinstance(token, str) else token.decode("utf-8")
 
 
 def decode_token(token):
@@ -48,17 +47,6 @@ def role_required(role):
     return decorator
 
 
-def roles_required(*roles):
-    def decorator(f):
-        @wraps(f)
-        def wrapper(*args, **kwargs):
-            if g.user_role not in roles:
-                return jsonify({"error": "Acesso negado"}), 403
-            return f(*args, **kwargs)
-        return wrapper
-    return decorator
-
-
 @auth_bp.route("/register", methods=["POST"])
 def register():
     data = request.get_json()
@@ -70,11 +58,11 @@ def register():
     if not name or not email or not password:
         return jsonify({"error": "nome, email e senha são obrigatórios"}), 400
 
-    if role not in ("athlete", "team", "nutritionist"):
-        return jsonify({"error": "papel deve ser 'atleta', 'treinador' ou 'nutricionista'"}), 400
+    if role not in ("athlete", "team"):
+        return jsonify({"error": "função deve ser 'atleta' ou 'time'"}), 400
 
     if User.query.filter_by(email=email).first():
-        return jsonify({"error": "Email ja cadastrado"}), 409
+        return jsonify({"error": "Email já cadastrado"}), 409
 
     password_hash = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
     user = User(
@@ -98,7 +86,7 @@ def login():
     password = data.get("password")
 
     if not email or not password:
-        return jsonify({"error": "email e password sao obrigatorios"}), 400
+        return jsonify({"error": "email e senha são obrigatórios"}), 400
 
     user = User.query.filter_by(email=email).first()
     if not user or not bcrypt.checkpw(password.encode(), user.password_hash.encode()):

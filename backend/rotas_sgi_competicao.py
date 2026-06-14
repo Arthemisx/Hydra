@@ -11,10 +11,10 @@ gi_survey_bp = Blueprint("gi_surveys", __name__, url_prefix="/api/gi-competition
 @gi_survey_bp.route("", methods=["POST"])
 @jwt_required
 def create_gi_survey():
-    """Salva questionario de sintomas gastrointestinais de competicao."""
+    """Salva questionario de sintomas gastrointestinais de competição."""
     data = request.get_json()
     if not data or "responses" not in data:
-        return jsonify({"error": "Informe as respostas do questionario."}), 400
+        return jsonify({"error": "Informe as respostas do questionário."}), 400
 
     responses = data["responses"]
     if not isinstance(responses, dict):
@@ -32,7 +32,7 @@ def create_gi_survey():
 @gi_survey_bp.route("", methods=["GET"])
 @jwt_required
 def list_gi_surveys():
-    """Lista questionarios. Atleta ve so os proprios; team ve todos."""
+    """Lista questionarios. Atleta ve so os próprios; team vê todos."""
     query = GiCompetitionSurvey.query.order_by(GiCompetitionSurvey.created_at.desc())
 
     if g.user_role == "athlete":

@@ -8,7 +8,7 @@ export function resolveApiBaseUrl(): string {
   const fromEnv = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
   if (fromEnv) return fromEnv;
 
-  // Build web de producao (servido pelo nginx): usa a mesma origem e o proxy /api.
+  // Build web de producao (servido pelo Caddy): usa a mesma origem.
   if (!__DEV__ && Platform.OS === "web" && typeof window !== "undefined") {
     return window.location.origin;
   }

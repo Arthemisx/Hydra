@@ -221,79 +221,117 @@ function SeverityGrid({
 
 export function BlocoGiSessao({ phase, data, onChange, onSeverityChange }: Props) {
   const phaseData = data[phase];
-  
+
   const phaseLabel = {
     pre: "antes da sessao",
     during: "durante a sessao",
     post: "apos a sessao"
   }[phase];
 
+  // Para fase pós-sessão, simplificar: só perguntar se sentiu sintomas e quando começaram
+  if (phase === "post") {
+    return (
+      <View>
+        <Text style={[styles.helperText, { marginBottom: 4, lineHeight: 18 }]}>
+          Sintomas gastrointestinais {phaseLabel}
+        </Text>
+
+        <YesNoQuestion
+          label="Você sentiu sintomas gastrointestinais após o exercício?"
+          value={phaseData.after_training as "sim" | "nao" | null}
+          onChange={(v) => {
+            onChange(phase, "after_training" as keyof PhaseGiData, v);
+          }}
+        />
+
+        {phaseData.after_training === "sim" ? (
+          <>
+            <TimingQuestion
+              label="Quando os sintomas começaram após o exercício?"
+              options={AFTER_TRAINING_TIMING}
+              value={phaseData.after_training_timing}
+              hours={phaseData.after_training_hours}
+              onChange={(v) => onChange(phase, "after_training_timing" as keyof PhaseGiData, v)}
+              onHoursChange={(v) => onChange(phase, "after_training_hours" as keyof PhaseGiData, v)}
+              hoursLabel="Horas após o término do exercício"
+            />
+            <SeverityGrid
+              label="Gravidade dos sintomas após o exercício"
+              values={phaseData.severity_after_training}
+              onChange={(s, n) => onSeverityChange(phase, "severity_after_training" as keyof PhaseGiData, s, n)}
+            />
+          </>
+        ) : null}
+      </View>
+    );
+  }
+
   const getTimingQuestions = () => {
     if (phase === "pre") {
       return {
         training: {
-          question: "Voce sentiu sintomas gastrointestinais antes do treino?",
+          question: "Você sentiu sintomas gastrointestinais antes do treino?",
           field: "before_training",
           timingField: "before_training_timing",
           hoursField: "before_training_hours",
           severityField: "severity_before_training",
           timingOptions: BEFORE_TRAINING_TIMING,
-          timingLabel: "Quando os sintomas comecaram antes do treino?",
+          timingLabel: "Quando os sintomas começaram antes do treino?",
           hoursLabel: "Horas antes do inicio do treino",
           severityLabel: "Gravidade dos sintomas antes do treino"
         },
         competition: {
-          question: "Voce sentiu sintomas gastrointestinais antes das competicoes?",
+          question: "Você sentiu sintomas gastrointestinais antes das competições?",
           field: "before_competition",
           timingField: "before_competition_timing",
           hoursField: "before_competition_hours",
           severityField: "severity_before_competition",
           timingOptions: BEFORE_COMPETITION_TIMING,
-          timingLabel: "Quando os sintomas comecaram antes das competicoes?",
+          timingLabel: "Quando os sintomas começaram antes das competições?",
           hoursLabel: "Horas antes do inicio da prova",
-          severityLabel: "Gravidade dos sintomas antes das competicoes"
+          severityLabel: "Gravidade dos sintomas antes das competições"
         }
       };
     } else if (phase === "during") {
       return {
         training: {
-          question: "Voce sentiu sintomas gastrointestinais durante o treino?",
+          question: "Você sentiu sintomas gastrointestinais durante o treino?",
           field: "during_training",
           timingField: "during_training_timing",
           hoursField: "during_training_hours",
           severityField: "severity_during_training",
           timingOptions: DURING_TRAINING_TIMING,
-          timingLabel: "Quando os sintomas comecaram durante o treino?",
+          timingLabel: "Quando os sintomas começaram durante o treino?",
           hoursLabel: "Horas durante o treino",
           severityLabel: "Gravidade dos sintomas durante o treino"
         },
         competition: {
-          question: "Voce sentiu sintomas gastrointestinais durante as competicoes?",
+          question: "Você sentiu sintomas gastrointestinais durante as competições?",
           field: "during_competition",
           timingField: "during_competition_timing",
           hoursField: "during_competition_hours",
           severityField: "severity_during_competition",
           timingOptions: DURING_COMPETITION_TIMING,
-          timingLabel: "Quando os sintomas comecaram durante as competicoes?",
-          hoursLabel: "Horas durante a competicao",
-          severityLabel: "Gravidade dos sintomas durante as competicoes"
+          timingLabel: "Quando os sintomas começaram durante as competições?",
+          hoursLabel: "Horas durante a competição",
+          severityLabel: "Gravidade dos sintomas durante as competições"
         }
       };
     } else {
       return {
         training: {
-          question: "Voce sentiu sintomas gastrointestinais apos o treino?",
+          question: "Você sentiu sintomas gastrointestinais após o treino?",
           field: "after_training",
           timingField: "after_training_timing",
           hoursField: "after_training_hours",
           severityField: "severity_after_training",
           timingOptions: AFTER_TRAINING_TIMING,
-          timingLabel: "Quando os sintomas comecaram apos o treino?",
-          hoursLabel: "Horas apos o termino do exercicio",
-          severityLabel: "Gravidade dos sintomas apos o treino"
+          timingLabel: "Quando os sintomas comecaram após o treino?",
+          hoursLabel: "Horas após o termino do exercicio",
+          severityLabel: "Gravidade dos sintomas após o treino"
         },
         competition: {
-          question: "Voce sentiu sintomas gastrointestinais apos as competicoes?",
+          question: "Você sentiu sintomas gastrointestinais após competições?",
           field: "after_competition",
           timingField: "after_competition_timing",
           hoursField: "after_competition_hours",
@@ -301,7 +339,7 @@ export function BlocoGiSessao({ phase, data, onChange, onSeverityChange }: Props
           timingOptions: AFTER_COMPETITION_TIMING,
           timingLabel: "Quando os sintomas comecaram apos as competicoes?",
           hoursLabel: "Horas apos o termino da prova",
-          severityLabel: "Gravidade dos sintomas apos as competicoes"
+          severityLabel: "Gravidade dos sintomas após as competições"
         }
       };
     }
@@ -314,7 +352,7 @@ export function BlocoGiSessao({ phase, data, onChange, onSeverityChange }: Props
       <Text style={[styles.helperText, { marginBottom: 4, lineHeight: 18 }]}>
         Sintomas gastrointestinais {phaseLabel}
       </Text>
-      
+
       <View style={{ marginTop: 8 }}>
         <Text style={styles.label}>Em qual contexto?</Text>
         <View style={styles.optionsWrap}>
@@ -343,24 +381,24 @@ export function BlocoGiSessao({ phase, data, onChange, onSeverityChange }: Props
             <>
               <YesNoQuestion
                 label={questions.training.question}
-                value={phaseData[questions.training.field]}
-                onChange={(v) => onChange(phase, questions.training.field, v)}
+                value={phaseData[questions.training.field as keyof PhaseGiData] as "sim" | "nao" | null}
+                onChange={(v) => onChange(phase, questions.training.field as keyof PhaseGiData, v)}
               />
-              {phaseData[questions.training.field] === "sim" ? (
+              {phaseData[questions.training.field as keyof PhaseGiData] === "sim" ? (
                 <>
                   <TimingQuestion
                     label={questions.training.timingLabel}
                     options={questions.training.timingOptions}
-                    value={phaseData[questions.training.timingField]}
-                    hours={phaseData[questions.training.hoursField]}
-                    onChange={(v) => onChange(phase, questions.training.timingField, v)}
-                    onHoursChange={(v) => onChange(phase, questions.training.hoursField, v)}
+                    value={phaseData[questions.training.timingField as keyof PhaseGiData] as string | null}
+                    hours={phaseData[questions.training.hoursField as keyof PhaseGiData] as string | null}
+                    onChange={(v) => onChange(phase, questions.training.timingField as keyof PhaseGiData, v)}
+                    onHoursChange={(v) => onChange(phase, questions.training.hoursField as keyof PhaseGiData, v)}
                     hoursLabel={questions.training.hoursLabel}
                   />
                   <SeverityGrid
                     label={questions.training.severityLabel}
-                    values={phaseData[questions.training.severityField]}
-                    onChange={(s, n) => onSeverityChange(phase, questions.training.severityField, s, n)}
+                    values={phaseData[questions.training.severityField as keyof PhaseGiData] as Record<string, number>}
+                    onChange={(s, n) => onSeverityChange(phase, questions.training.severityField as keyof PhaseGiData, s, n)}
                   />
                 </>
               ) : null}
@@ -371,24 +409,24 @@ export function BlocoGiSessao({ phase, data, onChange, onSeverityChange }: Props
             <>
               <YesNoQuestion
                 label={questions.competition.question}
-                value={phaseData[questions.competition.field]}
-                onChange={(v) => onChange(phase, questions.competition.field, v)}
+                value={phaseData[questions.competition.field as keyof PhaseGiData] as "sim" | "nao" | null}
+                onChange={(v) => onChange(phase, questions.competition.field as keyof PhaseGiData, v)}
               />
-              {phaseData[questions.competition.field] === "sim" ? (
+              {phaseData[questions.competition.field as keyof PhaseGiData] === "sim" ? (
                 <>
                   <TimingQuestion
                     label={questions.competition.timingLabel}
                     options={questions.competition.timingOptions}
-                    value={phaseData[questions.competition.timingField]}
-                    hours={phaseData[questions.competition.hoursField]}
-                    onChange={(v) => onChange(phase, questions.competition.timingField, v)}
-                    onHoursChange={(v) => onChange(phase, questions.competition.hoursField, v)}
+                    value={phaseData[questions.competition.timingField as keyof PhaseGiData] as string | null}
+                    hours={phaseData[questions.competition.hoursField as keyof PhaseGiData] as string | null}
+                    onChange={(v) => onChange(phase, questions.competition.timingField as keyof PhaseGiData, v)}
+                    onHoursChange={(v) => onChange(phase, questions.competition.hoursField as keyof PhaseGiData, v)}
                     hoursLabel={questions.competition.hoursLabel}
                   />
                   <SeverityGrid
                     label={questions.competition.severityLabel}
-                    values={phaseData[questions.competition.severityField]}
-                    onChange={(s, n) => onSeverityChange(phase, questions.competition.severityField, s, n)}
+                    values={phaseData[questions.competition.severityField as keyof PhaseGiData] as Record<string, number>}
+                    onChange={(s, n) => onSeverityChange(phase, questions.competition.severityField as keyof PhaseGiData, s, n)}
                   />
                 </>
               ) : null}

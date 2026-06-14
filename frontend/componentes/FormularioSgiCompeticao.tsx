@@ -329,17 +329,17 @@ export function FormularioSgiCompeticao({
         return (
           <View style={styles.giIntroBox}>
             <Text style={[styles.helperText, { lineHeight: 20 }]}>
-              Antes, durante ou depois de exercicios de endurance, alguns atletas apresentam sintomas
+              Antes, durante ou depois de exercicios alguns atletas apresentam sintomas
               gastrointestinais, como arrotos, nauseas, inchaco abdominal, diarreia, etc. As perguntas a
-              seguir estao relacionadas aos sintomas gastrointestinais e a gravidade dos sintomas
-              experimentados antes, durante ou depois do treinamento e/ou competicao.
+              seguir estão relacionadas aos sintomas gastrointestinais e a gravidade dos sintomas
+              experimentados antes, durante ou depois do treinamento e/ou competição.
             </Text>
           </View>
         );
       case "q12":
         return (
           <YesNoQuestion
-            label="Q12. Voce apresenta sintomas gastrointestinais (por exemplo, arrotos, nauseas, inchaco abdominal, diarreia etc.) antes, durante ou depois do treinamento de endurance e/ou competicao?"
+            label="Q12. Você apresenta sintomas gastrointestinais (por exemplo, arrotos, nauseas, inchaco abdominal, diarreia etc.) antes, durante ou depois do treinamento e/ou competição?"
             value={data.q12_has_symptoms}
             onChange={(v) => update("q12_has_symptoms", v)}
           />
@@ -429,7 +429,7 @@ export function FormularioSgiCompeticao({
       case "q20":
         return (
           <YesNoQuestion
-            label="Q20. Voce sente sintomas gastrointestinais APOS o treinamento?"
+            label="Q20. Você sente sintomas gastrointestinais APOS o treinamento?"
             value={data.q20_after_training}
             onChange={(v) => update("q20_after_training", v)}
           />
@@ -437,7 +437,7 @@ export function FormularioSgiCompeticao({
       case "q21":
         return (
           <TimingQuestion
-            label="Q21. APOS o treino, quando seus sintomas gastrointestinais costumam comecar?"
+            label="Q21. APÓS o treino, quando seus sintomas gastrointestinais costumam começar?"
             options={AFTER_TRAINING_TIMING}
             value={data.q21_after_training_timing}
             hours={data.q21_after_training_hours}
@@ -449,7 +449,7 @@ export function FormularioSgiCompeticao({
       case "q22":
         return (
           <SeverityGrid
-            label="Q22. Gravidade dos sintomas gastrointestinais APOS o treinamento."
+            label="Q22. Gravidade dos sintomas gastrointestinais APÓS o treinamento."
             values={data.q22_severity_after_training}
             onChange={(s, n) => updateSeverity("q22_severity_after_training", s, n)}
           />
@@ -457,7 +457,7 @@ export function FormularioSgiCompeticao({
       case "q23":
         return (
           <YesNoQuestion
-            label="Q23. Voce sente sintomas gastrointestinais ANTES das competicoes?"
+            label="Q23. Você sente sintomas gastrointestinais ANTES das competições?"
             value={data.q23_before_competition}
             onChange={(v) => update("q23_before_competition", v)}
           />
@@ -465,7 +465,7 @@ export function FormularioSgiCompeticao({
       case "q24":
         return (
           <TimingQuestion
-            label="Q24. ANTES das competicoes, quando seus sintomas gastrointestinais costumam comecar?"
+            label="Q24. ANTES das competições, quando seus sintomas gastrointestinais costumam começar?"
             options={BEFORE_COMPETITION_TIMING}
             value={data.q24_before_competition_timing}
             hours={data.q24_before_competition_hours}
@@ -477,7 +477,7 @@ export function FormularioSgiCompeticao({
       case "q25":
         return (
           <SeverityGrid
-            label="Q25. Gravidade dos sintomas gastrointestinais ANTES das competicoes."
+            label="Q25. Gravidade dos sintomas gastrointestinais ANTES das competições."
             values={data.q25_severity_before_competition}
             onChange={(s, n) => updateSeverity("q25_severity_before_competition", s, n)}
           />
@@ -485,7 +485,7 @@ export function FormularioSgiCompeticao({
       case "q26":
         return (
           <YesNoQuestion
-            label="Q26. Voce sente sintomas gastrointestinais DURANTE as competicoes?"
+            label="Q26. Você sente sintomas gastrointestinais DURANTE as competições?"
             value={data.q26_during_competition}
             onChange={(v) => update("q26_during_competition", v)}
           />
@@ -493,7 +493,7 @@ export function FormularioSgiCompeticao({
       case "q27":
         return (
           <TimingQuestion
-            label="Q27. DURANTE as competicoes, quando seus sintomas gastrointestinais geralmente comecam?"
+            label="Q27. DURANTE as competições, quando seus sintomas gastrointestinais geralmente começam?"
             options={DURING_COMPETITION_TIMING}
             value={data.q27_during_competition_timing}
             hours={data.q27_during_competition_hours}
@@ -505,7 +505,7 @@ export function FormularioSgiCompeticao({
       case "q28":
         return (
           <SeverityGrid
-            label="Q28. Gravidade dos sintomas gastrointestinais DURANTE as competicoes."
+            label="Q28. Gravidade dos sintomas gastrointestinais DURANTE as competições."
             values={data.q28_severity_during_competition}
             onChange={(s, n) => updateSeverity("q28_severity_during_competition", s, n)}
           />
@@ -513,7 +513,7 @@ export function FormularioSgiCompeticao({
       case "q29":
         return (
           <YesNoQuestion
-            label="Q29. Voce sente sintomas gastrointestinais APOS as competicoes?"
+            label="Q29. Você sente sintomas gastrointestinais APÓS as competições?"
             value={data.q29_after_competition}
             onChange={(v) => update("q29_after_competition", v)}
           />
@@ -521,7 +521,7 @@ export function FormularioSgiCompeticao({
       case "q30":
         return (
           <TimingQuestion
-            label="Q30. APOS as competicoes, quando seus sintomas gastrointestinais geralmente comecam?"
+            label="Q30. APÓS as competições, quando seus sintomas gastrointestinais geralmente começam?"
             options={AFTER_COMPETITION_TIMING}
             value={data.q30_after_competition_timing}
             hours={data.q30_after_competition_hours}
@@ -533,7 +533,7 @@ export function FormularioSgiCompeticao({
       case "q31":
         return (
           <SeverityGrid
-            label="Q31. Gravidade dos sintomas gastrointestinais APOS as competicoes."
+            label="Q31. Gravidade dos sintomas gastrointestinais APÓS as competições."
             values={data.q31_severity_after_competition}
             onChange={(s, n) => updateSeverity("q31_severity_after_competition", s, n)}
           />
@@ -559,7 +559,7 @@ export function FormularioSgiCompeticao({
       <View style={styles.contentCard}>
         <View style={styles.topBar}>
           <View style={styles.titleBlock}>
-            <Text style={styles.title}>Nova Sessao de Competicao</Text>
+            <Text style={styles.title}>Nova Sessão de Competição</Text>
             <Text style={styles.subtitle}>Preencha o questionario de sintomas gastrointestinais (SGI)</Text>
           </View>
         </View>

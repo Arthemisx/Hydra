@@ -16,7 +16,7 @@ import { loginStyles as styles } from "@/estilos/login.styles";
 import { useFeedback } from "@/componentes/ProvedorFeedback";
 import { BannerStatus } from "@/componentes/BannerStatus";
 
-type RoleOption = "athlete" | "team";
+type RoleOption = "athlete" | "team" | "nutritionist";
 
 export default function RegisterScreen() {
   const router = useRouter();
@@ -95,7 +95,7 @@ export default function RegisterScreen() {
           </View>
 
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Tipo de usuario:</Text>
+            <Text style={styles.label}>Tipo de usuário:</Text>
             <View style={styles.roleRow}>
               <TouchableOpacity
                 style={[styles.roleOption, role === "athlete" && styles.roleOptionOn]}
@@ -108,6 +108,12 @@ export default function RegisterScreen() {
                 onPress={() => setRole("team")}
               >
                 <Text style={[styles.roleText, role === "team" && styles.roleTextOn]}>Treinador</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.roleOption, role === "nutritionist" && styles.roleOptionOn]}
+                onPress={() => setRole("nutritionist")}
+              >
+                <Text style={[styles.roleText, role === "nutritionist" && styles.roleTextOn]}>Nutricionista</Text>
               </TouchableOpacity>
             </View>
           </View>

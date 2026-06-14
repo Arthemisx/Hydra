@@ -195,10 +195,10 @@ def build_sessions_csv_bytes(
         [
             "Data",
             "Status",
-            "Peso pre kg",
-            "Peso pos kg",
+            "Peso pré kg",
+            "Peso pós kg",
             "Fluidos mL",
-            "Duracao min",
+            "Duração min",
             "Taxa suor L/h",
             "Alerta",
             "Esporte",
@@ -222,8 +222,8 @@ def build_sessions_csv_bytes(
 
     if gi_surveys:
         w.writerow([])
-        w.writerow(["--- Questionarios SGI de Competicao ---"])
-        w.writerow(["Data", "Sintomas", "Frequencia", "Resumo"])
+        w.writerow(["--- Questionarios SGI de Competição ---"])
+        w.writerow(["Data", "Sintomas", "Frequência", "Resumo"])
         for survey in gi_surveys:
             r = _gi_survey_row(survey)
             w.writerow(
@@ -247,8 +247,8 @@ def build_sessions_pdf_bytes(
     sessions: list[Session],
     gi_surveys: list[GiCompetitionSurvey] | None = None,
 ) -> bytes:
-    title = f"Relatorio - Sessoes (" + PERIOD_LABELS.get(period, period) + ")"
-    subtitle = f"Periodo: {start.isoformat()} a {end.isoformat()}"
+    title = f"Relatório - sessões (" + PERIOD_LABELS.get(period, period) + ")"
+    subtitle = f"Período: {start.isoformat()} a {end.isoformat()}"
 
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=12)
@@ -269,19 +269,19 @@ def build_sessions_pdf_bytes(
     if not sessions and not gi_surveys:
         pdf.set_font("Helvetica", "I", 12)
         pdf.set_text_color(0, 0, 0)
-        pdf.multi_cell(0, 8, "Nenhuma sessao ou questionario SGI no periodo selecionado.")
+        pdf.multi_cell(0, 8, "Nenhuma sessão ou questionário SGI no período selecionado.")
     else:
         if sessions:
             pdf.set_font("Helvetica", "B", 14)
             pdf.set_text_color(0, 0, 0)
-            pdf.cell(0, 10, "Sessoes de treino", ln=True)
+            pdf.cell(0, 10, "Sessões de treino", ln=True)
             pdf.ln(4)
             # Header row
             pdf.set_fill_color(0, 51, 102)
             pdf.set_text_color(255, 255, 255)
             pdf.set_font("Helvetica", "B", 9)
             col_w = [22, 18, 18, 18, 20, 18, 22, 22, 24]
-            headers = ["Data", "Status", "P pre", "P pos", "Fluidos", "Min", "Suor L/h", "Alerta", "Esporte"]
+            headers = ["Data", "Status", "Peso pré", "Peso pós", "Fluidos", "Min", "Suor L/h", "Alerta", "Esporte"]
             for i, h in enumerate(headers):
                 pdf.cell(col_w[i], 8, h, border=0, fill=True)
             pdf.ln()
@@ -301,7 +301,7 @@ def build_sessions_pdf_bytes(
                     _ascii_safe(str(r["alertLevel"] or ""))[:10],
                     _ascii_safe(str(r["sport"] or ""))[:12],
                 ]
-                # Status colors
+                # Status
                 alert_level = r["alertLevel"]
                 fill = False
                 fill_color = (255, 255, 255)
@@ -313,7 +313,7 @@ def build_sessions_pdf_bytes(
                 elif alert_level == "CUIDADO":
                     fill = True
                     fill_color = (255, 204, 0)
-                elif r["status"] == "done":
+                elif r["status"] == "concluído":
                     fill = True
                     fill_color = (153, 255, 153)
                 elif r["status"] == "pre":
@@ -328,7 +328,7 @@ def build_sessions_pdf_bytes(
                         pdf.set_fill_color(255, 255, 255)
                         pdf.set_text_color(0, 0, 0)
                     elif i == 1:  # Status
-                        if r["status"] == "done":
+                        if r["status"] == "concluído":
                             pdf.set_fill_color(153, 255, 153)
                             pdf.cell(col_w[i], 7, cell, border=0, fill=True)
                         elif r["status"] == "pre":
@@ -344,9 +344,9 @@ def build_sessions_pdf_bytes(
             pdf.ln(8)
             pdf.set_font("Helvetica", "B", 14)
             pdf.set_text_color(0, 0, 0)
-            pdf.cell(0, 10, "Questionarios SGI de Competicao", ln=True)
+            pdf.cell(0, 10, "Questionarios SGI de Competição", ln=True)
             pdf.ln(4)
-            # GI Header
+            # GI
             pdf.set_fill_color(0, 51, 102)
             pdf.set_text_color(255, 255, 255)
             pdf.set_font("Helvetica", "B", 9)
@@ -366,7 +366,7 @@ def build_sessions_pdf_bytes(
                     _ascii_safe(str(r["frequency"] or ""))[:12],
                     _ascii_safe(r["summary"])[:80],
                 ]
-                # Symptoms color
+                # Sintomas
                 has_symptoms = r["hasSymptoms"]
                 for i, cell in enumerate(row):
                     if i == 1:
@@ -430,7 +430,7 @@ def build_csv_bytes(athlete_name: str, start: date, end: date, entries: list[Dai
         [
             "Data",
             "Atleta",
-            "Agua mL",
+            "Água mL",
             "Peso antes kg",
             "Peso depois kg",
             "Volume urina mL",
@@ -461,8 +461,8 @@ def build_csv_bytes(athlete_name: str, start: date, end: date, entries: list[Dai
 def build_pdf_bytes(
     athlete_name: str, period: str, start: date, end: date, entries: list[DailyEntry]
 ) -> bytes:
-    title = f"Relatorio {PERIOD_LABELS.get(period, period)} — {_ascii_safe(athlete_name)}"
-    subtitle = f"Periodo: {start.isoformat()} a {end.isoformat()}"
+    title = f"relatório {PERIOD_LABELS.get(period, period)} — {_ascii_safe(athlete_name)}"
+    subtitle = f"Período: {start.isoformat()} a {end.isoformat()}"
 
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=12)
@@ -475,11 +475,11 @@ def build_pdf_bytes(
 
     if not entries:
         pdf.set_font("Helvetica", "I", 11)
-        pdf.multi_cell(0, 8, "Nenhum registro no periodo selecionado.")
+        pdf.multi_cell(0, 8, "Nenhum registro no período selecionado.")
     else:
         pdf.set_font("Helvetica", "B", 8)
         col_w = [24, 16, 18, 18, 18, 22, 28, 42]
-        headers = ["Data", "Agua", "P antes", "P depois", "Urina", "Cor", "Sintomas", "Vestir"]
+        headers = ["Data", "Água", "P antes", "P depois", "Urina", "Cor", "Sintomas", "Vestir"]
         for i, h in enumerate(headers):
             pdf.cell(col_w[i], 7, h, border=1)
         pdf.ln()

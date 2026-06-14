@@ -1,15 +1,15 @@
 from flask import Blueprint, jsonify
 from models import Session, User
-from autenticacao import jwt_required, role_required
+from autenticacao import jwt_required, role_required, roles_required
 
 reports_bp = Blueprint("reports", __name__, url_prefix="/api")
 
 
 @reports_bp.route("/athletes", methods=["GET"])
 @jwt_required
-@role_required("team")
+@roles_required("team", "nutritionist")
 def list_athletes():
-    """Lista todos os atletas com resumo de sessoes (somente para equipe)."""
+    """Lista todos os atletas com resumo de sessões (somente para equipe)."""
     athletes = User.query.filter_by(role="athlete").order_by(User.name).all()
     result = []
     for athlete in athletes:
@@ -30,7 +30,7 @@ def list_athletes():
 
 @reports_bp.route("/athletes/<int:athlete_id>/history", methods=["GET"])
 @jwt_required
-@role_required("team")
+@roles_required("team", "nutritionist")
 def athlete_history(athlete_id):
     """Historico de sessoes de um atleta (somente para equipe)."""
     athlete = User.query.get_or_404(athlete_id)

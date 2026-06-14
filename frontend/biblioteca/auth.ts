@@ -9,7 +9,7 @@ export type User = {
   id: number;
   name: string;
   email: string;
-  role: "athlete" | "team";
+  role: "athlete" | "team" | "nutritionist";
   sport?: string | null;
 };
 
@@ -88,7 +88,7 @@ export async function register(
   name: string,
   email: string,
   password: string,
-  role: "athlete" | "team",
+  role: "athlete" | "team" | "nutritionist",
   sport?: string,
 ): Promise<User> {
   const base = resolveApiBaseUrl();

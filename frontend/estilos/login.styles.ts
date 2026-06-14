@@ -1,6 +1,5 @@
 import { StyleSheet } from "react-native";
 
-/** Visual do Hydra-login-cadastro (tela-login) */
 export const loginStyles = StyleSheet.create({
   screen: {
     flex: 1,

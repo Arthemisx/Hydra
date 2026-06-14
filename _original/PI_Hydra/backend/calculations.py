@@ -2,7 +2,7 @@
 
 
 def calculate_session(pre_mass_kg, post_mass_kg, fluid_intake_ml,
-                      urine_volume_ml, duration_min, rpe=None):
+                      urine_volume_ml, duration_min):
     """
     Calcula todos os indicadores de hidratacao de uma sessao.
 
@@ -30,24 +30,13 @@ def calculate_session(pre_mass_kg, post_mass_kg, fluid_intake_ml,
     recommended = sweat_rate * 1000 * 0.8
 
     # Nivel de alerta
-    alert = "NORMAL"
-
-    # Alerta baseado em variacao de peso
+    alert = "normal"
     if variation_pct > 2:
-        alert = "PERIGO"
+        alert = "perigo"
     elif variation_pct > 1:
-        alert = "CUIDADO"
+        alert = "cuidado"
     elif balance_ml > 0 and abs(balance_ml) > fluid_intake_ml * 0.5:
-        alert = "CUIDADO"  # possivel super-hidratacao
-
-    # Ajusta alerta baseado em RPE (Escala Borg CR10)
-    if rpe is not None:
-        if rpe >= 8 and alert != "PERIGO":
-            # Alto esforco percebido, elevamos o alerta
-            alert = "CUIDADO" if alert == "NORMAL" else alert
-        elif rpe <= 3 and alert == "PERIGO":
-            # Baixo esforco percebido, talvez erro na pesagem?
-            alert = "CUIDADO"
+        alert = "cuidado"  # possivel super-hidratacao
 
     return {
         "adjusted_loss_kg": round(adjusted_loss, 3),

@@ -3,9 +3,9 @@ import { Text, View } from "react-native";
 import { styles } from "@/estilos/index.styles";
 
 const PHASES = [
-  { key: "pre", label: "Pre-sessao" },
+  { key: "pre", label: "Pré-sessão" },
   { key: "during", label: "Durante" },
-  { key: "post", label: "Pos-sessao" },
+  { key: "post", label: "Pós-sessão" },
 ] as const;
 
 type SessionPhase = (typeof PHASES)[number]["key"];

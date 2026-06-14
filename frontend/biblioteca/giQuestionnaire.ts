@@ -1,18 +1,18 @@
 export const GI_SYMPTOMS = [
   "Arroto",
   "Azia",
-  "Inchaco (estomago cheio)",
+  "Inchaço (estomago cheio)",
   "Dor de estomago",
   "Ansia de vomito",
   "Regurgitacao",
   "Vomito em jato",
   "Flatulencia",
-  "Distensao abdominal inferior",
+  "Distensão abdominal inferior",
   "Vontade de defecar",
   "Dor no intestino lado esquerdo",
-  "Defecacao: Fezes amolecidas",
-  "Defecacao: Diarreia",
-  "Defecacao: Fezes com sangue",
+  "Defecação: Fezes amolecidas",
+  "Defecação: Diarreia",
+  "Defecação: Fezes com sangue",
   "Nausea",
   "Tontura",
   "Dor abdominal aguda transitoria",
@@ -94,8 +94,8 @@ export const INITIAL_GI_SURVEY: GiSurveyResponses = {
 
 export const CONTEXT_OPTIONS = [
   { value: "treino" as const, label: "Treino" },
-  { value: "competicao" as const, label: "Competicao" },
-  { value: "ambos" as const, label: "Treino e Competicao" },
+  { value: "competicao" as const, label: "Competição" },
+  { value: "ambos" as const, label: "Treino e Competição" },
 ];
 
 export const BEFORE_TRAINING_TIMING = [
@@ -119,18 +119,18 @@ export const AFTER_TRAINING_TIMING = [
   "Efeitos residuais dos sintomas tidos durante o exercicio",
   "O inicio dos sintomas apos o exercicio nao possui um horario padronizado/consistente",
   "Menos de 30 minutos apos o exercicio",
-  "Mais de 12 horas apos termino do exercicio",
+  "Mais de 12 horas apos término do exercicio",
 ];
 
 export const BEFORE_COMPETITION_TIMING = [
-  "Antes das competicoes (selecionar horario)",
+  "Antes das competições (selecionar horário)",
   "Horas antes do inicio da prova/exercicio",
   "Nao ha horario consistente antes do inicio da prova/exercicio",
   "Mais de 12 horas antes do inicio da prova/exercicio",
 ];
 
 export const DURING_COMPETITION_TIMING = [
-  "Durante a competicao (selecionar horario)",
+  "Durante a competição (selecionar horario)",
   "Horas durante a competicao",
   "Efeitos residuais dos sintomas tidos antes da prova/exercicio",
   "Nao ha horario consistente depois do inicio da prova/exercicio",
@@ -165,8 +165,23 @@ export function validateGiPhase(
   data: GiSurveyResponses,
 ): string | null {
   const phaseData = data[phase];
+
+  // Para fase pós-sessão, não exige contexto (simplificado)
+  if (phase === "post") {
+    const trainingField = "after_training";
+    const trainingTiming = "after_training_timing";
+
+    if (!phaseData[trainingField]) return `Responda se teve sintomas após o exercício.`;
+    if (phaseData[trainingField] === "sim" && !phaseData[trainingTiming]) {
+      return `Selecione quando os sintomas começaram após o exercício.`;
+    }
+
+    return null;
+  }
+
+  // Para pré e durante, exige contexto
   if (!phaseData.context) return `Selecione o contexto (treino/competicao) para a fase ${phase}.`;
-  
+
   const getRelevantFields = () => {
     if (phase === "pre") {
       return {
@@ -195,18 +210,18 @@ export function validateGiPhase(
   const fields = getRelevantFields();
 
   if (includesTraining(phaseData.context)) {
-    if (!phaseData[fields.trainingField]) return `Responda se teve sintomas no treino (fase ${phase}).`;
-    if (phaseData[fields.trainingField] === "sim" && !phaseData[fields.trainingTiming]) {
+    if (!phaseData[fields.trainingField as keyof PhaseGiData]) return `Responda se teve sintomas no treino (fase ${phase}).`;
+    if (phaseData[fields.trainingField as keyof PhaseGiData] === "sim" && !phaseData[fields.trainingTiming as keyof PhaseGiData]) {
       return `Selecione o momento mais comum no treino (fase ${phase}).`;
     }
   }
-  
+
   if (includesCompetition(phaseData.context)) {
-    if (!phaseData[fields.competitionField]) return `Responda se teve sintomas na competicao (fase ${phase}).`;
-    if (phaseData[fields.competitionField] === "sim" && !phaseData[fields.competitionTiming]) {
+    if (!phaseData[fields.competitionField as keyof PhaseGiData]) return `Responda se teve sintomas na competicao (fase ${phase}).`;
+    if (phaseData[fields.competitionField as keyof PhaseGiData] === "sim" && !phaseData[fields.competitionTiming as keyof PhaseGiData]) {
       return `Selecione o momento mais comum na competicao (fase ${phase}).`;
     }
   }
-  
+
   return null;
 }

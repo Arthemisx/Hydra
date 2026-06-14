@@ -49,22 +49,27 @@ def create_app():
         if not current_user:
             return jsonify({"error": "Usuário não encontrado."}), 404
 
-        athlete_name = current_user.name.strip()
-        requested_name = str(payload.get("athleteName", "")).strip()
-        if requested_name and requested_name.lower() != athlete_name.lower():
-            return jsonify({"error": "Voce só pode gerar o próprio relatorio."}), 403
+        # Treinadores e nutricionistas podem gerar relatórios de qualquer atleta
+        if current_user.role in ("team", "nutritionist"):
+            athlete_name = str(payload.get("athleteName", "")).strip()
+        else:
+            # Atletas só podem gerar seu próprio relatório
+            athlete_name = current_user.name.strip()
+            requested_name = str(payload.get("athleteName", "")).strip()
+            if requested_name and requested_name.lower() != athlete_name.lower():
+                return jsonify({"error": "Você só pode gerar o próprio relatório."}), 403
 
         if not athlete_name:
             return jsonify({"error": "Informe o nome do atleta."}), 400
         if period not in PERIODS:
-            return jsonify({"error": "Periodo invalido. Use: daily, weekly ou monthly."}), 400
+            return jsonify({"error": "Período inválido. Use: dia, mês ou ano."}), 400
         if fmt not in FORMATS:
-            return jsonify({"error": "Formato invalido. Use: pdf, spreadsheet ou longitudinal."}), 400
+            return jsonify({"error": "Formato invalido. Use: pdf ou planilha."}), 400
 
         try:
             start, end = date_range_for_period(period)
         except ValueError:
-            return jsonify({"error": "Periodo invalido."}), 400
+            return jsonify({"error": "Período inválido."}), 400
 
         report_source = str(payload.get("reportSource", "auto")).strip().lower()
         daily_rows = fetch_entries(athlete_name, start, end)

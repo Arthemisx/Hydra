@@ -36,7 +36,7 @@ export default function LoginScreen() {
       showSuccess("Login realizado!");
       router.replace("/");
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Credenciais invalidas";
+      const msg = err instanceof Error ? err.message : "Credenciais inválidas";
       setFieldError(msg);
       showError(msg);
     } finally {

@@ -1,9 +1,7 @@
 from flask import Blueprint, request, jsonify, g
-import json
-from datetime import datetime, timedelta
-from models import db, Session, FluidEvent, DailyEntry, User
-from autenticacao import jwt_required
-from calculos import calculate_session
+from models import db, Session, FluidEvent
+from auth import jwt_required
+from calculations import calculate_session
 
 session_bp = Blueprint("sessions", __name__, url_prefix="/api/sessions")
 
@@ -31,11 +29,6 @@ def create_session():
         symptoms_pre=data.get("symptoms_pre"),
         recent_hydration=data.get("recent_hydration"),
     )
-    
-    gi_responses = data.get("gi_responses")
-    if gi_responses is not None:
-        session.gi_responses = json.dumps(gi_responses, ensure_ascii=False)
-    
     db.session.add(session)
     db.session.commit()
     return jsonify(session.to_dict()), 201
@@ -44,7 +37,7 @@ def create_session():
 @session_bp.route("", methods=["GET"])
 @jwt_required
 def list_sessions():
-    """Lista sessoes. Atleta ve so as proprias; team ve todas."""
+    """Lista sessões. Atleta vê só as proprias; o time vê todas."""
     query = Session.query.order_by(Session.created_at.desc())
 
     if g.user_role == "athlete":
@@ -61,7 +54,7 @@ def list_sessions():
 @session_bp.route("/<int:session_id>", methods=["GET"])
 @jwt_required
 def get_session(session_id):
-    """Detalhe de uma sessao."""
+    """Detalhe de uma sessão."""
     session = Session.query.get_or_404(session_id)
 
     if g.user_role == "athlete" and session.athlete_id != g.user_id:
@@ -73,7 +66,7 @@ def get_session(session_id):
 @session_bp.route("/<int:session_id>/during", methods=["PATCH"])
 @jwt_required
 def update_during(session_id):
-    """Atualiza dados durante a sessao."""
+    """Atualiza dados durante a sessão."""
     session = Session.query.get_or_404(session_id)
     data = request.get_json()
 
@@ -81,17 +74,6 @@ def update_during(session_id):
         session.actual_duration_min = data["actual_duration_min"]
     if data.get("urine_volume_ml") is not None:
         session.urine_volume_ml = data["urine_volume_ml"]
-    
-    gi_responses = data.get("gi_responses")
-    if gi_responses is not None:
-        current_gi = {}
-        if session.gi_responses:
-            try:
-                current_gi = json.loads(session.gi_responses)
-            except json.JSONDecodeError:
-                pass
-        current_gi.update(gi_responses)
-        session.gi_responses = json.dumps(current_gi, ensure_ascii=False)
 
     # Recalcula total de fluidos a partir dos eventos
     total_fluid = db.session.query(
@@ -107,7 +89,7 @@ def update_during(session_id):
 @session_bp.route("/<int:session_id>/post", methods=["PATCH"])
 @jwt_required
 def update_post(session_id):
-    """Dados pos-sessao. Dispara calculo e finaliza."""
+    """Dados pós-sessão. Dispara cálculo e finaliza."""
     session = Session.query.get_or_404(session_id)
     data = request.get_json()
 
@@ -115,11 +97,6 @@ def update_post(session_id):
     session.soaked_clothing = data.get("soaked_clothing", False)
     session.gi_symptoms = data.get("gi_symptoms")
     session.fatigue_level = data.get("fatigue_level")
-    session.perceived_intensity_post = data.get("perceived_intensity_post")
-
-    gi_responses = data.get("gi_responses")
-    if gi_responses is not None:
-        session.gi_responses = json.dumps(gi_responses, ensure_ascii=False)
 
     if data.get("actual_duration_min") is not None:
         session.actual_duration_min = data["actual_duration_min"]
@@ -136,9 +113,8 @@ def update_post(session_id):
     fluid = float(session.fluid_intake_ml) if session.fluid_intake_ml else 0
     urine = float(session.urine_volume_ml) if session.urine_volume_ml else 0
     duration = session.actual_duration_min or session.expected_duration_min or 60
-    rpe = session.perceived_intensity_post
 
-    results = calculate_session(pre, post, fluid, urine, duration, rpe)
+    results = calculate_session(pre, post, fluid, urine, duration)
 
     session.adjusted_loss_kg = results["adjusted_loss_kg"]
     session.sweat_rate_lh = results["sweat_rate_lh"]
@@ -146,13 +122,10 @@ def update_post(session_id):
     session.hydration_balance_ml = results["hydration_balance_ml"]
     session.recommended_intake_ml_h = results["recommended_intake_ml_h"]
     session.alert_level = results["alert_level"]
-    session.status = "concluído"
+    session.status = "done"
 
     db.session.commit()
     return jsonify(session.to_dict())
-
-
-# ─ Fluid Events ─
 
 @session_bp.route("/<int:session_id>/fluid", methods=["POST"])
 @jwt_required
@@ -174,69 +147,6 @@ def add_fluid_event(session_id):
 @session_bp.route("/<int:session_id>/fluid", methods=["GET"])
 @jwt_required
 def list_fluid_events(session_id):
-    """Lista eventos de fluido de uma sessao."""
+    """Lista eventos de fluido de uma sessão."""
     events = FluidEvent.query.filter_by(session_id=session_id).order_by(FluidEvent.timestamp).all()
     return jsonify([e.to_dict() for e in events])
-
-
-@session_bp.route("/statistics", methods=["GET"])
-@jwt_required
-def get_statistics():
-    """Retorna estatisticas de treino do atleta: dias treinados e agua ingerida por dia."""
-    # Busca o nome do atleta atual
-    current_user = User.query.get(g.user_id)
-    if not current_user:
-        return jsonify({"error": "Usuário não encontrado"}), 404
-    
-    athlete_name = current_user.name
-    
-    # Filtra por periodo se fornecido (padrao: ultimos 30 dias)
-    days = request.args.get("days", 30, type=int)
-    since_date = datetime.now() - timedelta(days=days)
-    
-    # Busca DailyEntries do atleta
-    daily_entries = DailyEntry.query.filter(
-        DailyEntry.athlete_name == athlete_name,
-        DailyEntry.entry_date >= since_date.date()
-    ).order_by(DailyEntry.entry_date.desc()).all()
-    
-    # Busca Sessions do atleta com status "concluído"
-    sessions = Session.query.filter(
-        Session.athlete_id == g.user_id,
-        Session.status == "concluído",
-        Session.created_at >= since_date
-    ).order_by(Session.created_at.desc()).all()
-    
-    # Agrupa por data
-    from collections import defaultdict
-    daily_stats = defaultdict(lambda: {"sessions": 0, "water_ml": 0})
-    
-    # Adiciona dados de DailyEntries
-    for entry in daily_entries:
-        date_key = entry.entry_date.isoformat()
-        daily_stats[date_key]["sessions"] += 1
-        daily_stats[date_key]["water_ml"] += float(entry.water_intake_ml or 0)
-    
-    # Adiciona dados de Sessions
-    for session in sessions:
-        date_key = session.created_at.date().isoformat()
-        daily_stats[date_key]["sessions"] += 1
-        daily_stats[date_key]["water_ml"] += float(session.fluid_intake_ml or 0)
-    
-    # Converte para lista ordenada por data
-    result = [
-        {
-            "date": date,
-            "sessions": stats["sessions"],
-            "water_ml": stats["water_ml"]
-        }
-        for date, stats in sorted(daily_stats.items(), reverse=True)
-    ]
-    
-    total_entries = len(daily_entries) + len(sessions)
-    
-    return jsonify({
-        "period_days": days,
-        "total_sessions": total_entries,
-        "daily_stats": result
-    })
