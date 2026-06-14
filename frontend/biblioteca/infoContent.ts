@@ -1,0 +1,16 @@
+export const ABOUT_PARAGRAPHS = [
+  `Este aplicativo foi desenvolvido no âmbito do Projeto Integrador do Instituto Mauá de Tecnologia, com foco no acompanhamento hídrico e na saúde de atletas de diferentes modalidades`,
+  `O Hydra é uma ferramenta multidisciplinar desenvolvida por estudantes do curso ciência da computação, com o auxílio dos professores responsáveis e do Centro Universitário São Camilo.`,
+  `Através do nosso aplicativo, você pode registrar seu peso antes e após o treino, monitorar a ingestão de líquidos, verificar o volume e a cor da urina, e relatar sintomas gastrointestinais que podem surgir durante o exercício. Além disso, implementamos a Escala de Borg Modificada (CR10) para registrar sua percepção de esforço (RPE), um indicador valioso para ajustar a intensidade do treino com segurança`,
+  `Os dados coletados geram alertas automáticos baseados em evidências científicas, como variação percentual de peso corporal (indicador de desidratação ou hiperidratação) e taxa de sudorese. Todo o ecossistema é composto por um aplicativo para o atleta, e uma área restrita para a equipe técnica, onde é possível visualizar o histórico completo e relatórios detalhados em PDF ou planilha.`,
+];
+
+export const HELP_PARAGRAPHS = [
+  `Iniciando uma nova sessão: na tela inicial, toque em 'Nova Sessão' para começar o acompanhamento do seu treino ou competição. A sessão é composta por três etapas: pré-sessão, durante a sessão e pós-sessão.`,
+  `Pré-sessão: preencha o seu peso pré (antes de urinar e com roupas leves), a modalidade esportiva, a temperatura ambiente, umidade relativa do ar, duração prevista do treino e a cor da urina usando o cartão visual. Registre sua percepção de esforço esperada (RPE) usando a Escala Borg de 0 a 10 (0 = repouso; 10 = máximo, muito, muito difícil). `,
+  `Durante a sessão: toque em 'Registrar Fluido' sempre que ingerir líquidos. Você pode escolher entre volumes predefinidos (squeeze, copo, garrafa) ou inserir um volume personalizado em mililitros. Adicione também o volume de urina eliminado, se aplicável.`,
+  `Pós-sessão: preencha seu peso pós-treino (sem roupas molhadas e depois de urinar), registre se as roupas ficaram encharcadas, o nível de fadiga e sua percepção real de esforço (RPE) durante a sessão. Responda também sobre sintomas GI que apareceram após o término do treino ou competição. Quando todas as etapas forem completadas, toque em Salvar para finalizar.`, 
+  `Treinador: se você é membro da equipe técnica, acesse a visão 'Treinador' para ver a lista de atletas, visualizar detalhes de cada sessão, e gerar relatórios. Relatórios: na tela 'Relatório', selecione o nome do atleta, o período (diário, semanal ou mensal) e o formato desejado (PDF, planilha CSV ou análise longitudinal) e toque em 'Gerar Relatório.'`,
+  `Problemas com conexão: certifique-se de que o servidor backend Flask está rodando na porta 5000 do seu computador e que o firewall não está bloqueando a conexão. No celular: se o aplicativo não encontrar a API, edite o arquivo .env e adicione EXPO_PUBLIC_API_BASE_URL com o endereço IP do seu computador na rede local (ex: http://192.168.15.10:5000).`, 
+  `Limpar dados: para reiniciar uma sessão incompleta, toque em 'Voltar' até a tela inicial e depois em 'Nova Sessão' novamente. Os dados não salvos serão perdidos.`,
+];
