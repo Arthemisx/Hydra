@@ -12,9 +12,11 @@ frontend/.expo/
 frontend/dist/
 frontend/.env
 
-# Docker / deploy
-.env
-.claude
+# Docker / deploy (segredos — NAO commitar)
+/.env
+
+# Ferramentas locais
+.claude/
 
 # OS / IDE
 .DS_Store

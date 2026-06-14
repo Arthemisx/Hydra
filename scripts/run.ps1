@@ -1,4 +1,4 @@
-$projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$projectRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 $backendDir = Join-Path $projectRoot "backend"
 $frontendDir = Join-Path $projectRoot "frontend"
 

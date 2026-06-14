@@ -1,175 +1,31 @@
-# Projeto Hydra — Monitoramento de Hidratação
+<h1 align="center"> Hydra — Monitoramento de Hidratação - Projeto Integrador Interdiciplinar em parceiria com a São Camilo </h1> 
 
-Aplicativo para registro diário e sessões de hidratação de atletas (São Camilo).
+# Aplicativo para registro diário de sessões de treinamento e hidratação de atletas.
 
-## Origem dos módulos
+O projeto foi desenvolvido com o objetivo de auxiliar no dia a dia de treinadores, nutricionistas e atletas. Após reuniões com o cliente, foi possivel identificar o problema enfrentado para o controle e supervisão de atletas durante a rotina de treinos. Desse modo, através de reuniões e futuras sprints foi possível discutir a cerca de como produzir um aplicativo multiplataforma que contesse uma interface básica, intuitiva e prática para otimizar o tempo dos usuários, além de ser completa para dar o suporte necessário do inicio ao fim. Nesse sentido, foram realizados diferentes cadastros de acordo com a necessidade de cada usuario (treinador, nutricionista e atleta), junto ao vlibras caso seja necessário e cores marcantes. 
 
-| Parte | Origem |
-|-------|--------|
-| **Backend + banco** | PI caio (`PI_Hydra`) — SQLite, auth JWT, sessões |
-| **Login / cadastro** | `Hydra-login-cadastro` (visual tela-login) |
-| **Relatório, sobre, ajuda, registro diário** | `TelaInicial/AdesivoSmash` |
-| **Sessões (pré / durante / pós)** | Lógica TelaInicial + visual PI caio |
+# 🔨 Funcionalidades do projeto
 
-## Estrutura
+A funcionalidade inserida no site deriva de acordo com a necessidade, no login de treinador é possível adicionar e excluir atletas e gerar relatorios de seus respectivos grupos e atletas. Ao acessar o login do nutricionista é possível acessar seus respectivos times e gerar relatorios. Já no login do atleta apenas é possivel gerar seu próprio relatório, registrar suas sessões, receber feedback de uma Inteligência artificial, além de poder conversar com ela e poder acessar tambem as estatisticas de seus treinos.
+
+As tecnologias utilizadas ao longo do projeto iniciaram-se no Figma, onde foram desenvolvidos protótipos de tela e navegação para que assim o grupo pudesse apresentar ao cliente a ideia inicial e assim ajustar de acordo com as necessidades citadas. Após a aprovação, o grupo iniciou a programação do projeto, dividindo tarefas e as administrando com a ferramenta Trello e realizando Sprints para alinhar objetivos e planejamento. Após isso, a Stack utilizada foram os framework do React e Fask, as Linguagens JavaScript e Python e o banco de dados MySQL a fim de armazenar dados de usuários e registro de sessões.
+
+O aplicativo foi desenvolvido pelo grupo de projeto integrador interdisciplinar mestrado pelo professor Alexander e Rudolf, com seus respectivos membros: Arthemis Nobre, Bianca Borges, Carmen Salido, Caio e Maria Clara Gatti.
+
+# 📁 Acesso ao projeto
+
+O projeto pode ser acessado por qualquer um que clonar todo o repositorio em seu dispositivo e tiver o vs code ou variaveis instalados em seu dispositivo.
+# 🛠️ Abrir e rodar o projeto
+
+Para executar o projeto os passos principais são:
+
+1. Clone o repositorio para uma pasta local
+
+2. Abra esse folder em seu VS Code
 
 ```
-Hydra/
-├── backend/              # API Flask (hydra.db)
-│   ├── app.py            # Entrypoint Flask
-│   ├── models.py         # Tabelas (SQLAlchemy)
-│   ├── autenticacao.py   # Login, registro, JWT
-│   ├── calculos.py       # Cálculos de hidratação
-│   ├── relatorios.py     # Geração de PDF / CSV
-│   ├── rotas_sessao.py   # Endpoints de sessão
-│   ├── rotas_diario.py   # Endpoints de registro diário
-│   ├── rotas_relatorios.py # Endpoints de relatórios
-│   ├── auditoria.py      # Testes + utilitários (CLI)
-│   └── scripts/seed.py   # Popula banco com dados demo
-├── frontend/             # App Expo
-│   ├── app/              # Rotas (Expo Router) — só telas
-│   ├── componentes/      # Componentes reutilizáveis
-│   ├── biblioteca/       # Chamadas de API, auth, constantes
-│   └── estilos/          # StyleSheets por tela
-├── setup.cmd             # Instalação (Windows)
-└── run.cmd               # Executar app + API
-```
-
-## Ferramentas de auditoria (backend)
-
-```cmd
-cd backend
-.venv\Scripts\python.exe auditoria.py testar      :: roda os testes
-.venv\Scripts\python.exe auditoria.py verificar   :: lista entradas do banco
-.venv\Scripts\python.exe auditoria.py datas       :: atualiza datas para hoje
-```
-
-## Como executar
-
-### 1. Setup (primeira vez)
-
-**Opção A — duplo clique ou CMD (recomendado no Windows):**
-
-```cmd
-setup.cmd
-```
-
-**Opção B — PowerShell** (se der erro de política de execução, use a opção A ou rode antes):
-
-```powershell
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-.\setup.ps1
 ```
-
-### 2. Executar
-
-```cmd
-run.cmd
-```
-
-ou, no PowerShell (com política liberada):
-
-```powershell
-.\run.ps1
-```
-
-- **Backend:** http://localhost:5000  
-- **App:** escaneie o QR code do Expo (porta 8083)
-
-### Usuários de demonstração (após o seed)
-
-| Perfil   | E-mail               | Senha     |
-|----------|----------------------|-----------|
-| Equipe   | maria@saocamilo.br   | team123   |
-| Atleta   | carlos@email.com     | atleta123 |
-| Atleta   | ana@email.com        | atleta123 |
-
-## Deploy com Docker (host AWS)
-
-O projeto roda inteiro com `docker compose`: **Postgres** + **backend** (Flask/gunicorn) + **web** (build estático do Expo servido por nginx). O nginx serve o app na porta **80** e faz proxy de `/api` para o backend, então só a porta 80 precisa ficar aberta.
-
-### Arquivos
-
-```
-docker-compose.yml        # orquestra db + backend + web
-.env.example              # variaveis (copie para .env)
-backend/Dockerfile        # imagem do backend (gunicorn)
-backend/entrypoint.sh     # espera o banco, roda o seed e sobe o gunicorn
-frontend/Dockerfile       # build web do Expo + nginx
-frontend/nginx.conf       # serve o estatico e faz proxy de /api
-```
-
-### Subir localmente
-
-```bash
-cp .env.example .env       # ajuste POSTGRES_PASSWORD e JWT_SECRET
-docker compose up -d --build
-```
-
-Acesse **http://localhost** (o app web já fala com a API pelo proxy `/api`).
-
-### Deploy em EC2 (Amazon Linux / Ubuntu)
-
-1. **Instale Docker + Compose** na instância e adicione seu usuário ao grupo `docker`.
-2. No **Security Group**, libere a porta **80** (HTTP) — e 22 para SSH.
-3. Clone o repositório e configure o `.env`:
-
-   ```bash
-   git clone <repo> hydra && cd hydra
-   cp .env.example .env
-   # gere segredos fortes:
-   #   JWT_SECRET=$(openssl rand -hex 32)
-   #   POSTGRES_PASSWORD=$(openssl rand -hex 16)
-   nano .env
-   ```
-
-4. Suba o stack:
-
-   ```bash
-   docker compose up -d --build
-   ```
-
-5. Acesse `http://<IP-publico-da-EC2>`.
-
-O app é acessível pelo navegador **e** pelo app mobile Expo — basta apontar `EXPO_PUBLIC_API_BASE_URL=http://<IP-ou-dominio>` no build do app, que as chamadas `/api` também passam pelo proxy.
-
-### Variáveis (.env)
-
-| Variável | Função |
-|----------|--------|
-| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Credenciais do Postgres |
-| `JWT_SECRET` | **Obrigatório** — segredo de assinatura dos tokens JWT |
-| `SEED_ON_START` | `1` popula usuários demo no primeiro start (`0` desliga) |
-| `GUNICORN_WORKERS` | Nº de workers do backend |
-| `EXPO_PUBLIC_API_BASE_URL` | Vazio = web usa o proxy `/api` do nginx (recomendado) |
-
-> O banco persiste no volume Docker `pgdata`. Para zerar tudo: `docker compose down -v`.
-
-### Comandos úteis
-
-```bash
-docker compose logs -f backend     # logs do backend
-docker compose ps                  # status dos servicos
-docker compose up -d --build web   # rebuild so do front apos mudar telas
-docker compose down                # para tudo (mantem os dados)
-```
-
-> **Produção:** para HTTPS, coloque um proxy/Load Balancer (ALB) ou um nginx com TLS na frente da porta 80, ou use Caddy/Traefik para certificado automático.
-
-## Funcionalidades
-
-- **Login / Cadastro** — Atleta ou Treinador
-- **Tela inicial** — Nova sessão (pré / durante / pós) e registro diário
-- **Treinador** — Lista de atletas e histórico
-- **Relatórios** — PDF, planilha CSV ou painel longitudinal
-- **Sobre / Ajuda** — Informações do app
-
-## Banco de dados
-
-Por padrão o backend usa **SQLite** (`backend/hydra.db`). Para MySQL ou PostgreSQL, configure `DATABASE_URL` em `backend/.env`.
-
-## Desenvolvimento manual
-
 **Backend:**
 
 ```powershell
@@ -182,7 +38,99 @@ python app.py
 
 ```powershell
 cd frontend
+npm install
 npm start
 ```
 
-Defina `EXPO_PUBLIC_API_BASE_URL` em `frontend/.env` se o dispositivo não alcançar `localhost` (use o IP da máquina na rede).
+## Banco de dados
+
+Por padrão o backend usa **SQLite** (`backend/hydra.db`). Para MySQL ou PostgreSQL, configure `DATABASE_URL` em `backend/.env`.
+
+
+### Usuários de demonstração (após o seed)
+
+| Perfil   | E-mail               | Senha     |
+|----------|----------------------|-----------|
+| Equipe   | maria@saocamilo.br   | team123   |
+| Atleta   | carlos@email.com     | atleta123 |
+| Atleta   | ana@email.com        | atleta123 |
+
+
+## Ferramentas de auditoria (backend)
+
+```cmd
+cd backend
+.venv\Scripts\python.exe auditoria.py testar      :: roda os testes
+.venv\Scripts\python.exe auditoria.py verificar   :: lista entradas do banco
+.venv\Scripts\python.exe auditoria.py datas       :: atualiza datas para hoje
+```
+
+---
+
+# 🚀 Como rodar com a CLI (Linux/macOS)
+
+Na raiz do projeto há uma CLI `./hydra` que escolhe o script certo pra você:
+
+```bash
+./hydra            # abre o menu interativo
+./hydra setup      # instala dependencias (primeira vez)
+./hydra run        # roda em modo dev (backend Flask + Expo com QR code)
+./hydra up         # sobe o app completo via Docker (com HTTPS)
+./hydra down       # para os containers Docker
+./hydra logs       # mostra os logs do Docker
+```
+
+> No **Windows**, use os scripts equivalentes em `scripts/`: dê duplo clique em `scripts\setup.cmd` (primeira vez) e depois em `scripts\run.cmd`.
+
+# 🐳 Docker e Deploy (HTTPS)
+
+Em produção o projeto roda em **3 containers** orquestrados pelo `docker compose`:
+
+```
+Navegador ──HTTPS──► Caddy (app web + proxy /api) ──► gunicorn ──► Flask ──► Postgres
+                       (web)                          (backend)              (db)
+```
+
+| Container | Papel |
+|-----------|-------|
+| **web** (Caddy) | Serve o app web, faz **HTTPS** (certificado Let's Encrypt automático) e repassa `/api` para o backend |
+| **backend** (gunicorn) | Roda a API Flask |
+| **db** (Postgres) | Banco de dados, com volume persistente |
+
+### Subir localmente com Docker
+
+```bash
+cp .env.example .env      # ajuste JWT_SECRET, POSTGRES_PASSWORD e SITE_HOSTNAME
+./hydra up                # equivale a: docker compose up -d --build
+```
+
+Para uso **local**, deixe `SITE_HOSTNAME=localhost` no `.env` — o Caddy gera um certificado local automaticamente.
+
+### Deploy em servidor (ex.: AWS EC2)
+
+1. Instale **Docker** + plugin do **Compose** na instância.
+2. Libere as portas **80** e **443** no Security Group.
+3. No `.env`, defina `SITE_HOSTNAME` com um hostname que resolva para o IP do servidor. Sem domínio próprio, use o **sslip.io**: `<IP>.sslip.io` (ex.: `3.17.204.77.sslip.io`).
+4. Rode `./hydra up`. O Caddy emite o certificado Let's Encrypt sozinho no primeiro acesso.
+
+> ⚠️ O **HTTPS é necessário** para a geolocalização funcionar no navegador (usada no recurso de clima). Em `http://` puro o navegador bloqueia a localização.
+
+### Variáveis de ambiente (`.env`)
+
+| Variável | Função |
+|----------|--------|
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Credenciais do Postgres |
+| `JWT_SECRET` | **Obrigatório** — segredo de assinatura dos tokens JWT |
+| `SITE_HOSTNAME` | **Obrigatório** — hostname público (ou `localhost`) |
+| `SEED_ON_START` | `1` popula usuarios demo no primeiro start |
+| `OPENWEATHER_API_KEY` | (opcional) clima real; sem chave usa valores padrão |
+| `OPENROUTER_API_KEY` | (opcional) IA real; sem chave usa análise/chat padrão |
+
+# 🗂️ Estrutura de scripts
+
+```
+hydra                 # CLI (Linux/macOS) — ponto de entrada
+scripts/
+├── setup.sh  / setup.cmd  / setup.ps1   # instalacao de dependencias
+└── run.sh    / run.cmd    / run.ps1     # rodar em modo desenvolvimento
+```

@@ -1,0 +1,8 @@
+Teste API OpenWeatherMap
+========================================
+OPENWEATHER_API_KEY (os.environ): 9714fce2d6df25d333f39672985f1694
+
+✅ Sucesso!
+Temperatura: 17.4°C
+Umidade: 80%
+Descrição: Neblina

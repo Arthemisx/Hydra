@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Diretorios do projeto
-PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Diretorios do projeto (este script vive em scripts/, sobe um nivel)
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BACKEND_DIR="$PROJECT_ROOT/backend"
 FRONTEND_DIR="$PROJECT_ROOT/frontend"
 
@@ -32,4 +32,4 @@ fi
 
 echo ""
 echo "Setup concluido com sucesso."
-echo "Agora rode: ./run.sh"
+echo "Agora rode: ./hydra run"

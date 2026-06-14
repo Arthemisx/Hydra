@@ -9,7 +9,9 @@ export function resolveApiBaseUrl(): string {
   if (fromEnv) return fromEnv;
 
   // Build web de producao (servido pelo nginx): usa a mesma origem e o proxy /api.
-  if (!__DEV__ && Platform.OS === "web") return "";
+  if (!__DEV__ && Platform.OS === "web" && typeof window !== "undefined") {
+    return window.location.origin;
+  }
 
   if (__DEV__ && Platform.OS !== "web") {
     const debuggerHost = Constants.debuggerHost;
@@ -37,4 +39,54 @@ export function apiPath(base: string, path: string) {
   const b = base.replace(/\/$/, "");
   const p = path.startsWith("/") ? path : `/${path}`;
   return `${b}${p}`;
+}
+
+// Novas funções para clima e análise AI
+export async function getWeather(lat: number, lon: number): Promise<{ temperature: number; humidity: number; description: string } | null> {
+  try {
+    const base = resolveApiBaseUrl();
+    const url = new URL(apiPath(base, "/api/weather"));
+    url.searchParams.set("lat", String(lat));
+    url.searchParams.set("lon", String(lon));
+
+    const response = await fetch(url.toString(), { method: "GET" });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch {
+    return null;
+  }
+}
+
+export async function analyzeSession(sessionData: any): Promise<string> {
+  try {
+    const base = resolveApiBaseUrl();
+    const response = await fetch(apiPath(base, "/api/analyze-session"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(sessionData),
+    });
+    const data = await response.json();
+    return data.analysis || "Análise indisponível";
+  } catch {
+    return "Ocorreu um erro ao conectar ao servidor para análise.";
+  }
+}
+
+export async function chatWithAI(message: string, sessionData: any, chatHistory: any[] = []): Promise<string> {
+  try {
+    const base = resolveApiBaseUrl();
+    const response = await fetch(apiPath(base, "/api/chat"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message,
+        sessionData,
+        chatHistory,
+      }),
+    });
+    const data = await response.json();
+    return data.reply || "Não foi possível obter resposta.";
+  } catch {
+    return "Ocorreu um erro ao conectar ao servidor para chat.";
+  }
 }

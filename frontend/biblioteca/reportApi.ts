@@ -34,6 +34,14 @@ export type LongitudinalSession = {
   sport?: string | null;
 };
 
+export type LongitudinalGiSurvey = {
+  id: number;
+  entryDate: string;
+  hasSymptoms?: string | null;
+  frequency?: string | null;
+  summary: string;
+};
+
 export type LongitudinalReport = {
   athleteName: string;
   period: ReportPeriod;
@@ -43,9 +51,11 @@ export type LongitudinalReport = {
   reportType?: "sessions" | "daily";
   entries?: LongitudinalEntry[];
   sessions?: LongitudinalSession[];
+  giSurveys?: LongitudinalGiSurvey[];
   summary: {
     entryCount?: number;
     sessionCount?: number;
+    giSurveyCount?: number;
     avgWaterIntakeMl?: number | null;
     avgWeightAfterKg?: number | null;
     avgFluidMl?: number | null;

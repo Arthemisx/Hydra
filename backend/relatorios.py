@@ -1,4 +1,5 @@
 import csv
+import json
 import unicodedata
 from datetime import date, timedelta
 from io import StringIO
@@ -6,15 +7,18 @@ from io import StringIO
 from fpdf import FPDF
 from sqlalchemy import func
 
-from models import db, DailyEntry, Session, User
+from models import db, DailyEntry, GiCompetitionSurvey, Session, User
 
-PERIODS = {"daily", "weekly", "monthly"}
+PERIODS = {"daily", "weekly", "monthly", "3months", "6months", "yearly"}
 FORMATS = {"pdf", "spreadsheet", "longitudinal"}
 
 PERIOD_LABELS = {
     "daily": "Diario",
-    "weekly": "Semanal",
-    "monthly": "Mensal",
+    "weekly": "Última semana",
+    "monthly": "Último mês",
+    "3months": "Últimos três meses",
+    "6months": "Últimos 6 meses",
+    "yearly": "Último ano",
 }
 
 
@@ -27,6 +31,15 @@ def date_range_for_period(period: str, ref: date | None = None) -> tuple[date, d
         return ref - timedelta(days=6), ref
     if p == "monthly":
         return ref.replace(day=1), ref
+    if p == "3months":
+        three_months_ago = ref - timedelta(days=90)
+        return three_months_ago, ref
+    if p == "6months":
+        six_months_ago = ref - timedelta(days=180)
+        return six_months_ago, ref
+    if p == "yearly":
+        one_year_ago = ref - timedelta(days=365)
+        return one_year_ago, ref
     raise ValueError("periodo invalido")
 
 
@@ -60,6 +73,65 @@ def fetch_sessions(athlete_name: str, start: date, end: date) -> list[Session]:
     )
 
 
+def fetch_gi_surveys(athlete_name: str, start: date, end: date) -> list[GiCompetitionSurvey]:
+    user = User.query.filter(
+        func.lower(User.name) == athlete_name.lower(),
+        User.role == "athlete",
+    ).first()
+    if not user:
+        return []
+    return (
+        GiCompetitionSurvey.query.filter(
+            GiCompetitionSurvey.athlete_id == user.id,
+            func.date(GiCompetitionSurvey.created_at) >= start,
+            func.date(GiCompetitionSurvey.created_at) <= end,
+        )
+        .order_by(GiCompetitionSurvey.created_at.asc())
+        .all()
+    )
+
+
+def _format_gi_summary(responses: dict) -> str:
+    parts: list[str] = []
+    has = responses.get("q12_has_symptoms")
+    if has:
+        parts.append(f"Sintomas: {has}")
+    freq = responses.get("q13_frequency")
+    if freq:
+        freq_labels = {
+            "treino": "treino",
+            "competicao": "competicao",
+            "ambos": "treino e competicao",
+        }
+        parts.append(f"Frequencia: {freq_labels.get(freq, freq)}")
+
+    def _yes_no(key: str, label: str) -> None:
+        val = responses.get(key)
+        if val:
+            parts.append(f"{label}: {val}")
+
+    _yes_no("q14_before_training", "Antes treino")
+    _yes_no("q17_during_training", "Durante treino")
+    _yes_no("q20_after_training", "Apos treino")
+    _yes_no("q23_before_competition", "Antes competicao")
+    _yes_no("q26_during_competition", "Durante competicao")
+    _yes_no("q29_after_competition", "Apos competicao")
+
+    return " | ".join(parts) if parts else "Sem respostas registradas"
+
+
+def _gi_survey_row(survey: GiCompetitionSurvey) -> dict:
+    responses = json.loads(survey.responses) if survey.responses else {}
+    return {
+        "id": survey.id,
+        "entryDate": survey.created_at.date().isoformat() if survey.created_at else "",
+        "hasSymptoms": responses.get("q12_has_symptoms"),
+        "frequency": responses.get("q13_frequency"),
+        "summary": _format_gi_summary(responses),
+        "responses": responses,
+    }
+
+
 def _session_row(s: Session) -> dict:
     return {
         "id": s.id,
@@ -76,11 +148,17 @@ def _session_row(s: Session) -> dict:
 
 
 def build_longitudinal_sessions_payload(
-    athlete_name: str, period: str, start: date, end: date, sessions: list[Session]
+    athlete_name: str,
+    period: str,
+    start: date,
+    end: date,
+    sessions: list[Session],
+    gi_surveys: list[GiCompetitionSurvey] | None = None,
 ) -> dict:
     rows = [_session_row(s) for s in sessions]
+    gi_rows = [_gi_survey_row(s) for s in (gi_surveys or [])]
     if not rows:
-        summary = {"sessionCount": 0, "avgFluidMl": None, "avgSweatRateLh": None}
+        summary = {"sessionCount": 0, "avgFluidMl": None, "avgSweatRateLh": None, "giSurveyCount": len(gi_rows)}
     else:
         n = len(rows)
         fluids = [r["fluidIntakeMl"] for r in rows if r["fluidIntakeMl"]]
@@ -89,6 +167,7 @@ def build_longitudinal_sessions_payload(
             "sessionCount": n,
             "avgFluidMl": round(sum(fluids) / len(fluids), 1) if fluids else None,
             "avgSweatRateLh": round(sum(sweats) / len(sweats), 2) if sweats else None,
+            "giSurveyCount": len(gi_rows),
         }
     return {
         "athleteName": athlete_name,
@@ -98,11 +177,18 @@ def build_longitudinal_sessions_payload(
         "dateTo": end.isoformat(),
         "reportType": "sessions",
         "sessions": rows,
+        "giSurveys": gi_rows,
         "summary": summary,
     }
 
 
-def build_sessions_csv_bytes(athlete_name: str, start: date, end: date, sessions: list[Session]) -> bytes:
+def build_sessions_csv_bytes(
+    athlete_name: str,
+    start: date,
+    end: date,
+    sessions: list[Session],
+    gi_surveys: list[GiCompetitionSurvey] | None = None,
+) -> bytes:
     buf = StringIO()
     w = csv.writer(buf)
     w.writerow(
@@ -133,52 +219,173 @@ def build_sessions_csv_bytes(athlete_name: str, start: date, end: date, sessions
                 r["sport"] or "",
             ]
         )
+
+    if gi_surveys:
+        w.writerow([])
+        w.writerow(["--- Questionarios SGI de Competicao ---"])
+        w.writerow(["Data", "Sintomas", "Frequencia", "Resumo"])
+        for survey in gi_surveys:
+            r = _gi_survey_row(survey)
+            w.writerow(
+                [
+                    r["entryDate"],
+                    r["hasSymptoms"] or "",
+                    r["frequency"] or "",
+                    r["summary"],
+                ]
+            )
+
     text = buf.getvalue()
     return ("\ufeff" + text).encode("utf-8-sig")
 
 
 def build_sessions_pdf_bytes(
-    athlete_name: str, period: str, start: date, end: date, sessions: list[Session]
+    athlete_name: str,
+    period: str,
+    start: date,
+    end: date,
+    sessions: list[Session],
+    gi_surveys: list[GiCompetitionSurvey] | None = None,
 ) -> bytes:
-    title = f"Relatorio Sessoes {PERIOD_LABELS.get(period, period)} — {_ascii_safe(athlete_name)}"
+    title = f"Relatorio - Sessoes (" + PERIOD_LABELS.get(period, period) + ")"
     subtitle = f"Periodo: {start.isoformat()} a {end.isoformat()}"
 
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=12)
     pdf.add_page()
-    pdf.set_font("Helvetica", "B", 14)
-    pdf.cell(0, 10, _ascii_safe(title), ln=True)
-    pdf.set_font("Helvetica", size=10)
-    pdf.cell(0, 8, _ascii_safe(subtitle), ln=True)
-    pdf.ln(4)
 
-    if not sessions:
-        pdf.set_font("Helvetica", "I", 11)
-        pdf.multi_cell(0, 8, "Nenhuma sessao no periodo selecionado.")
+    # Header
+    pdf.set_font("Helvetica", "B", 20)
+    pdf.set_text_color(0, 51, 102)
+    pdf.cell(0, 12, _ascii_safe(title), ln=True, align="C")
+    pdf.set_font("Helvetica", "B", 14)
+    pdf.set_text_color(0, 0, 0)
+    pdf.cell(0, 10, _ascii_safe(athlete_name), ln=True, align="C")
+    pdf.set_font("Helvetica", size=11)
+    pdf.set_text_color(102, 102, 102)
+    pdf.cell(0, 8, _ascii_safe(subtitle), ln=True, align="C")
+    pdf.ln(8)
+
+    if not sessions and not gi_surveys:
+        pdf.set_font("Helvetica", "I", 12)
+        pdf.set_text_color(0, 0, 0)
+        pdf.multi_cell(0, 8, "Nenhuma sessao ou questionario SGI no periodo selecionado.")
     else:
-        pdf.set_font("Helvetica", "B", 8)
-        col_w = [22, 18, 18, 18, 20, 18, 22, 22, 24]
-        headers = ["Data", "Status", "P pre", "P pos", "Fluidos", "Min", "Suor L/h", "Alerta", "Esporte"]
-        for i, h in enumerate(headers):
-            pdf.cell(col_w[i], 7, h, border=1)
-        pdf.ln()
-        pdf.set_font("Helvetica", size=7)
-        for s in sessions:
-            r = _session_row(s)
-            row = [
-                r["entryDate"],
-                _ascii_safe(str(r["status"] or ""))[:10],
-                str(r["preMassKg"] or ""),
-                str(r["postMassKg"] or ""),
-                str(r["fluidIntakeMl"]),
-                str(r["actualDurationMin"] or ""),
-                str(r["sweatRateLh"] or ""),
-                _ascii_safe(str(r["alertLevel"] or ""))[:10],
-                _ascii_safe(str(r["sport"] or ""))[:12],
-            ]
-            for i, cell in enumerate(row):
-                pdf.cell(col_w[i], 6, cell, border=1)
+        if sessions:
+            pdf.set_font("Helvetica", "B", 14)
+            pdf.set_text_color(0, 0, 0)
+            pdf.cell(0, 10, "Sessoes de treino", ln=True)
+            pdf.ln(4)
+            # Header row
+            pdf.set_fill_color(0, 51, 102)
+            pdf.set_text_color(255, 255, 255)
+            pdf.set_font("Helvetica", "B", 9)
+            col_w = [22, 18, 18, 18, 20, 18, 22, 22, 24]
+            headers = ["Data", "Status", "P pre", "P pos", "Fluidos", "Min", "Suor L/h", "Alerta", "Esporte"]
+            for i, h in enumerate(headers):
+                pdf.cell(col_w[i], 8, h, border=0, fill=True)
             pdf.ln()
+            # Data rows
+            pdf.set_text_color(0, 0, 0)
+            pdf.set_font("Helvetica", size=8)
+            for s in sessions:
+                r = _session_row(s)
+                row = [
+                    r["entryDate"],
+                    _ascii_safe(str(r["status"] or ""))[:10],
+                    str(r["preMassKg"] or ""),
+                    str(r["postMassKg"] or ""),
+                    str(r["fluidIntakeMl"]),
+                    str(r["actualDurationMin"] or ""),
+                    str(r["sweatRateLh"] or ""),
+                    _ascii_safe(str(r["alertLevel"] or ""))[:10],
+                    _ascii_safe(str(r["sport"] or ""))[:12],
+                ]
+                # Status colors
+                alert_level = r["alertLevel"]
+                fill = False
+                fill_color = (255, 255, 255)
+                text_color = (0, 0, 0)
+                if alert_level == "PERIGO":
+                    fill = True
+                    fill_color = (255, 51, 51)
+                    text_color = (255, 255, 255)
+                elif alert_level == "CUIDADO":
+                    fill = True
+                    fill_color = (255, 204, 0)
+                elif r["status"] == "done":
+                    fill = True
+                    fill_color = (153, 255, 153)
+                elif r["status"] == "pre":
+                    fill = True
+                    fill_color = (153, 204, 255)
+                # Draw cells
+                for i, cell in enumerate(row):
+                    if i == 7:  # Alerta
+                        pdf.set_fill_color(*fill_color)
+                        pdf.set_text_color(*text_color)
+                        pdf.cell(col_w[i], 7, cell, border=0, fill=fill)
+                        pdf.set_fill_color(255, 255, 255)
+                        pdf.set_text_color(0, 0, 0)
+                    elif i == 1:  # Status
+                        if r["status"] == "done":
+                            pdf.set_fill_color(153, 255, 153)
+                            pdf.cell(col_w[i], 7, cell, border=0, fill=True)
+                        elif r["status"] == "pre":
+                            pdf.set_fill_color(153, 204, 255)
+                            pdf.cell(col_w[i], 7, cell, border=0, fill=True)
+                        else:
+                            pdf.cell(col_w[i], 7, cell, border=0)
+                    else:
+                        pdf.cell(col_w[i], 7, cell, border=0)
+                pdf.ln()
+
+        if gi_surveys:
+            pdf.ln(8)
+            pdf.set_font("Helvetica", "B", 14)
+            pdf.set_text_color(0, 0, 0)
+            pdf.cell(0, 10, "Questionarios SGI de Competicao", ln=True)
+            pdf.ln(4)
+            # GI Header
+            pdf.set_fill_color(0, 51, 102)
+            pdf.set_text_color(255, 255, 255)
+            pdf.set_font("Helvetica", "B", 9)
+            gi_col_w = [24, 18, 24, 124]
+            gi_headers = ["Data", "Sintomas", "Frequencia", "Resumo"]
+            for i, h in enumerate(gi_headers):
+                pdf.cell(gi_col_w[i], 8, h, border=0, fill=True)
+            pdf.ln()
+            # GI Rows
+            pdf.set_text_color(0, 0, 0)
+            pdf.set_font("Helvetica", size=8)
+            for survey in gi_surveys:
+                r = _gi_survey_row(survey)
+                row = [
+                    r["entryDate"],
+                    _ascii_safe(str(r["hasSymptoms"] or ""))[:8],
+                    _ascii_safe(str(r["frequency"] or ""))[:12],
+                    _ascii_safe(r["summary"])[:80],
+                ]
+                # Symptoms color
+                has_symptoms = r["hasSymptoms"]
+                for i, cell in enumerate(row):
+                    if i == 1:
+                        if has_symptoms == "sim":
+                            pdf.set_fill_color(255, 102, 102)
+                            pdf.set_text_color(255, 255, 255)
+                            pdf.cell(gi_col_w[i], 7, cell, border=0, fill=True)
+                            pdf.set_text_color(0, 0, 0)
+                            pdf.set_fill_color(255, 255, 255)
+                        else:
+                            pdf.cell(gi_col_w[i], 7, cell, border=0)
+                    else:
+                        pdf.cell(gi_col_w[i], 7, cell, border=0)
+                pdf.ln()
+        # Footer
+        pdf.ln(6)
+        pdf.set_font("Helvetica", "I", 8)
+        pdf.set_text_color(102, 102, 102)
+        pdf.cell(0, 6, "* L/h = Litros por hora", ln=True)
 
     raw = pdf.output(dest="S")
     return raw if isinstance(raw, (bytes, bytearray)) else raw.encode("latin-1")

@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+#
+# CLI simples do Hydra — escolhe qual script rodar (setup, dev, docker).
+# Uso:
+#   ./hydra            -> abre o menu interativo
+#   ./hydra setup      -> instala dependencias (primeira vez)
+#   ./hydra run        -> roda em modo dev (backend Flask + Expo)
+#   ./hydra up         -> sobe tudo via Docker (build + up)
+#   ./hydra down       -> para os containers Docker
+#   ./hydra logs       -> mostra os logs do Docker
+#
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPTS="$ROOT/scripts"
+
+cmd_setup() { bash "$SCRIPTS/setup.sh"; }
+cmd_run()   { bash "$SCRIPTS/run.sh"; }
+cmd_up()    { ( cd "$ROOT" && docker compose up -d --build ); }
+cmd_down()  { ( cd "$ROOT" && docker compose down ); }
+cmd_logs()  { ( cd "$ROOT" && docker compose logs -f ); }
+
+menu() {
+  echo ""
+  echo "  ╔══════════════════════════════════╗"
+  echo "  ║            H Y D R A             ║"
+  echo "  ╚══════════════════════════════════╝"
+  echo ""
+  echo "  1) Setup          (instalar dependencias — primeira vez)"
+  echo "  2) Rodar (dev)    (backend Flask + Expo, com QR)"
+  echo "  3) Docker: subir  (build + up — app completo com HTTPS)"
+  echo "  4) Docker: parar"
+  echo "  5) Docker: logs"
+  echo "  0) Sair"
+  echo ""
+  printf "  Escolha uma opcao: "
+  read -r opt
+  case "$opt" in
+    1) cmd_setup ;;
+    2) cmd_run ;;
+    3) cmd_up ;;
+    4) cmd_down ;;
+    5) cmd_logs ;;
+    0) exit 0 ;;
+    *) echo "  Opcao invalida."; exit 1 ;;
+  esac
+}
+
+case "${1:-}" in
+  setup)        cmd_setup ;;
+  run|dev)      cmd_run ;;
+  up|docker-up) cmd_up ;;
+  down)         cmd_down ;;
+  logs)         cmd_logs ;;
+  "")           menu ;;
+  -h|--help|help)
+    grep '^#' "$0" | sed 's/^# \{0,1\}//' | tail -n +2
+    ;;
+  *)
+    echo "Comando desconhecido: $1"
+    echo "Use: ./hydra [setup|run|up|down|logs]  (ou sem argumento para o menu)"
+    exit 1 ;;
+esac

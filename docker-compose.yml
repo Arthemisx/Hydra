@@ -21,6 +21,10 @@ services:
       JWT_SECRET: ${JWT_SECRET:?defina JWT_SECRET no arquivo .env}
       SEED_ON_START: ${SEED_ON_START:-1}
       GUNICORN_WORKERS: ${GUNICORN_WORKERS:-3}
+      # Integracoes opcionais (clima/IA). Sem chave, o backend usa respostas padrao.
+      OPENWEATHER_API_KEY: ${OPENWEATHER_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-meta-llama/llama-3-8b-instruct}
     depends_on:
       db:
         condition: service_healthy
@@ -28,16 +32,25 @@ services:
       - "5000"
     restart: unless-stopped
 
+  # Caddy serve o app web estatico, faz HTTPS (Let's Encrypt) e proxy de /api.
   web:
     build:
       context: ./frontend
       args:
         EXPO_PUBLIC_API_BASE_URL: ${EXPO_PUBLIC_API_BASE_URL:-}
+    environment:
+      SITE_HOSTNAME: ${SITE_HOSTNAME:?defina SITE_HOSTNAME no arquivo .env}
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
       - backend
     restart: unless-stopped
 
 volumes:
   pgdata:
+  caddy_data:
+  caddy_config:

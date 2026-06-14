@@ -1,0 +1,15 @@
+{$SITE_HOSTNAME} {
+	encode gzip
+
+	# API → backend (gunicorn/Flask)
+	handle /api/* {
+		reverse_proxy backend:5000
+	}
+
+	# Restante → app web estatico (expo-router) com fallback de SPA
+	handle {
+		root * /srv
+		try_files {path} {path}.html /index.html
+		file_server
+	}
+}

@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, g
+import json
 from models import db, Session, FluidEvent
 from autenticacao import jwt_required
 from calculos import calculate_session
@@ -29,6 +30,11 @@ def create_session():
         symptoms_pre=data.get("symptoms_pre"),
         recent_hydration=data.get("recent_hydration"),
     )
+    
+    gi_responses = data.get("gi_responses")
+    if gi_responses is not None:
+        session.gi_responses = json.dumps(gi_responses, ensure_ascii=False)
+    
     db.session.add(session)
     db.session.commit()
     return jsonify(session.to_dict()), 201
@@ -74,6 +80,17 @@ def update_during(session_id):
         session.actual_duration_min = data["actual_duration_min"]
     if data.get("urine_volume_ml") is not None:
         session.urine_volume_ml = data["urine_volume_ml"]
+    
+    gi_responses = data.get("gi_responses")
+    if gi_responses is not None:
+        current_gi = {}
+        if session.gi_responses:
+            try:
+                current_gi = json.loads(session.gi_responses)
+            except json.JSONDecodeError:
+                pass
+        current_gi.update(gi_responses)
+        session.gi_responses = json.dumps(current_gi, ensure_ascii=False)
 
     # Recalcula total de fluidos a partir dos eventos
     total_fluid = db.session.query(
@@ -97,6 +114,11 @@ def update_post(session_id):
     session.soaked_clothing = data.get("soaked_clothing", False)
     session.gi_symptoms = data.get("gi_symptoms")
     session.fatigue_level = data.get("fatigue_level")
+    session.perceived_intensity_post = data.get("perceived_intensity_post")
+
+    gi_responses = data.get("gi_responses")
+    if gi_responses is not None:
+        session.gi_responses = json.dumps(gi_responses, ensure_ascii=False)
 
     if data.get("actual_duration_min") is not None:
         session.actual_duration_min = data["actual_duration_min"]
@@ -113,8 +135,9 @@ def update_post(session_id):
     fluid = float(session.fluid_intake_ml) if session.fluid_intake_ml else 0
     urine = float(session.urine_volume_ml) if session.urine_volume_ml else 0
     duration = session.actual_duration_min or session.expected_duration_min or 60
+    rpe = session.perceived_intensity_post
 
-    results = calculate_session(pre, post, fluid, urine, duration)
+    results = calculate_session(pre, post, fluid, urine, duration, rpe)
 
     session.adjusted_loss_kg = results["adjusted_loss_kg"]
     session.sweat_rate_lh = results["sweat_rate_lh"]
