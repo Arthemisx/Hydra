@@ -84,6 +84,78 @@ ou, no PowerShell (com política liberada):
 | Atleta   | carlos@email.com     | atleta123 |
 | Atleta   | ana@email.com        | atleta123 |
 
+## Deploy com Docker (host AWS)
+
+O projeto roda inteiro com `docker compose`: **Postgres** + **backend** (Flask/gunicorn) + **web** (build estático do Expo servido por nginx). O nginx serve o app na porta **80** e faz proxy de `/api` para o backend, então só a porta 80 precisa ficar aberta.
+
+### Arquivos
+
+```
+docker-compose.yml        # orquestra db + backend + web
+.env.example              # variaveis (copie para .env)
+backend/Dockerfile        # imagem do backend (gunicorn)
+backend/entrypoint.sh     # espera o banco, roda o seed e sobe o gunicorn
+frontend/Dockerfile       # build web do Expo + nginx
+frontend/nginx.conf       # serve o estatico e faz proxy de /api
+```
+
+### Subir localmente
+
+```bash
+cp .env.example .env       # ajuste POSTGRES_PASSWORD e JWT_SECRET
+docker compose up -d --build
+```
+
+Acesse **http://localhost** (o app web já fala com a API pelo proxy `/api`).
+
+### Deploy em EC2 (Amazon Linux / Ubuntu)
+
+1. **Instale Docker + Compose** na instância e adicione seu usuário ao grupo `docker`.
+2. No **Security Group**, libere a porta **80** (HTTP) — e 22 para SSH.
+3. Clone o repositório e configure o `.env`:
+
+   ```bash
+   git clone <repo> hydra && cd hydra
+   cp .env.example .env
+   # gere segredos fortes:
+   #   JWT_SECRET=$(openssl rand -hex 32)
+   #   POSTGRES_PASSWORD=$(openssl rand -hex 16)
+   nano .env
+   ```
+
+4. Suba o stack:
+
+   ```bash
+   docker compose up -d --build
+   ```
+
+5. Acesse `http://<IP-publico-da-EC2>`.
+
+O app é acessível pelo navegador **e** pelo app mobile Expo — basta apontar `EXPO_PUBLIC_API_BASE_URL=http://<IP-ou-dominio>` no build do app, que as chamadas `/api` também passam pelo proxy.
+
+### Variáveis (.env)
+
+| Variável | Função |
+|----------|--------|
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Credenciais do Postgres |
+| `JWT_SECRET` | **Obrigatório** — segredo de assinatura dos tokens JWT |
+| `SEED_ON_START` | `1` popula usuários demo no primeiro start (`0` desliga) |
+| `GUNICORN_WORKERS` | Nº de workers do backend |
+| `EXPO_PUBLIC_API_BASE_URL` | Vazio = web usa o proxy `/api` do nginx (recomendado) |
+
+> O banco persiste no volume Docker `pgdata`. Para zerar tudo: `docker compose down -v`.
+
+### Comandos úteis
+
+```bash
+docker compose logs -f backend     # logs do backend
+docker compose ps                  # status dos servicos
+docker compose up -d --build web   # rebuild so do front apos mudar telas
+docker compose down                # para tudo (mantem os dados)
+```
+
+> **Produção:** para HTTPS, coloque um proxy/Load Balancer (ALB) ou um nginx com TLS na frente da porta 80, ou use Caddy/Traefik para certificado automático.
+
 ## Funcionalidades
 
 - **Login / Cadastro** — Atleta ou Treinador

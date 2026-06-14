@@ -8,6 +8,9 @@ export function resolveApiBaseUrl(): string {
   const fromEnv = process.env.EXPO_PUBLIC_API_BASE_URL?.trim();
   if (fromEnv) return fromEnv;
 
+  // Build web de producao (servido pelo nginx): usa a mesma origem e o proxy /api.
+  if (!__DEV__ && Platform.OS === "web") return "";
+
   if (__DEV__ && Platform.OS !== "web") {
     const debuggerHost = Constants.debuggerHost;
     if (debuggerHost) {
