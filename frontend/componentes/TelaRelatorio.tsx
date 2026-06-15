@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -8,8 +8,12 @@ import {
   View,
   StyleSheet,
   Modal,
+  Platform,
+  Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { File, Paths } from "expo-file-system";
+import * as Sharing from "expo-sharing";
 
 import { CoachAthleteSummary } from "@/biblioteca/constants";
 import { useFeedback } from "@/componentes/ProvedorFeedback";
@@ -111,7 +115,31 @@ export function TelaRelatorio({
   const athleteSummary = athletes.find(
     (athlete) => athlete.name.toLowerCase() === athleteReportName.toLowerCase(),
   );
-  const athleteSessionsCount = athleteSummary?.totalEntries ?? 0;
+
+  // O atleta nao recebe a lista de atletas (so o time recebe), entao conta
+  // as proprias sessoes direto em /api/sessions (filtra por athlete_id no backend).
+  const [ownSessionsCount, setOwnSessionsCount] = useState(0);
+  useEffect(() => {
+    if (isTeamUser) return;
+    let active = true;
+    (async () => {
+      try {
+        const res = await fetchWithAuth("/api/sessions");
+        if (!res.ok) return;
+        const data = await res.json();
+        if (active) setOwnSessionsCount(Array.isArray(data) ? data.length : 0);
+      } catch {
+        /* mantem 0 em caso de erro */
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [isTeamUser]);
+
+  const athleteSessionsCount = isTeamUser
+    ? (athleteSummary?.totalEntries ?? 0)
+    : ownSessionsCount;
 
   const filteredAthletes = isTeamUser
     ? MOCK_ATHLETES.filter((athlete) => {
@@ -154,13 +182,35 @@ export function TelaRelatorio({
         return;
       }
 
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `relatorio_${currentAthlete}_${periodObj.code}.${reportFormat === "PDF" ? "pdf" : "csv"}`;
-      anchor.click();
-      window.URL.revokeObjectURL(url);
+      const ext = reportFormat === "PDF" ? "pdf" : "csv";
+      const mime = ext === "pdf" ? "application/pdf" : "text/csv";
+      const filename = `relatorio_${currentAthlete}_${periodObj.code}.${ext}`.replace(
+        /[^a-zA-Z0-9._-]/g,
+        "_",
+      );
+      const buf = await response.arrayBuffer();
+
+      if (Platform.OS === "web") {
+        const blob = new Blob([buf], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const anchor = document.createElement("a");
+        anchor.href = url;
+        anchor.download = filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        anchor.remove();
+        URL.revokeObjectURL(url);
+      } else {
+        // Mobile: salva o arquivo no cache e abre o menu de compartilhar
+        const file = new File(Paths.cache, filename);
+        file.create({ overwrite: true });
+        file.write(new Uint8Array(buf));
+        if (await Sharing.isAvailableAsync()) {
+          await Sharing.shareAsync(file.uri, { mimeType: mime, dialogTitle: "Relatório" });
+        } else {
+          Alert.alert("Arquivo salvo", file.uri);
+        }
+      }
 
       showSuccess(`Relatório para ${currentAthlete} gerado com sucesso!`);
       if (!isTeamUser) {
